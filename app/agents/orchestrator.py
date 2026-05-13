@@ -1,9 +1,8 @@
+from dotenv import load_dotenv
 from openai import OpenAI
+import time
 
-from app.rag.retriever import retrieve_documents
-from app.agents.simulation_agent import run_retirement_simulation
-from app.observability.traces import logger
-from app.utils.helpers import format_retirement_response
+load_dotenv()
 
 client = OpenAI()
 
@@ -16,34 +15,92 @@ Your responsibilities:
 - explain retirement readiness
 - compare guaranteed vs market-linked plans
 - explain financial tradeoffs
-- remain grounded in retrieved pension knowledge
-- avoid hallucinations
 
-Always:
-- explain suitability
-- explain retirement gaps
-- explain investment risks
-- provide practical recommendations
+Grounding Rules:
+- ONLY use retrieved pension documents
+- ONLY use provided simulation results
+- NEVER use external financial knowledge
+- NEVER invent pension features, guarantees, returns, tax benefits, or eligibility rules
+- NEVER assume details not explicitly present in retrieved context
+- if information is unavailable in retrieved documents,
+  explicitly say:
+  "I could not find this information in the retrieved pension documents."
 
-Do not invent financial numbers.
-Use only provided simulation results and retrieved context.
+Conversation Rules:
+- use conversation history only for conversational continuity
+- do not rely on memory as factual source
+- always prioritize retrieved documents and simulation outputs
+- if the query is a follow-up question,
+  answer directly without regenerating full reports
+- avoid repeating previous explanations
+
+Response Rules:
+- keep answers concise and practical
+- use short paragraphs
+- use bullet points where useful
+- avoid repetition
+- avoid lengthy financial disclaimers
+- keep total response under 500 words
+- keep follow-up answers under 150 words
+- focus on actionable retirement guidance grounded in retrieved documents
+
+Accuracy Rules:
+- do not invent financial numbers
+- do not generalize retirement advice
+- do not generate unsupported pension comparisons
+- every recommendation must be supported by retrieved context
+- if retrieved context is insufficient,
+  clearly acknowledge the limitation
+
+Use ONLY:
+1. Retrieved pension context
+2. Simulation results
+3. Conversation history for contextual understanding
 """
 
+
+# =============================================================================
+# FILTER DETECTION
+# =============================================================================
 
 def detect_filters(query):
 
     query_lower = query.lower()
 
-    filters = {}
+    guaranteed = (
+        "guaranteed" in query_lower
+    )
 
-    if "guaranteed" in query_lower:
-        filters["guaranteed_income"] = True
+    market_linked = (
+        "market linked" in query_lower
+    )
 
-    if "market linked" in query_lower:
-        filters["market_linked"] = True
+    # =========================================================================
+    # SINGLE FILTER
+    # =========================================================================
 
-    return filters
+    if guaranteed and not market_linked:
 
+        return {
+            "guaranteed_income": True
+        }
+
+    elif market_linked and not guaranteed:
+
+        return {
+            "market_linked": True
+        }
+
+    # =========================================================================
+    # BOTH PRESENT → NO FILTER
+    # =========================================================================
+
+    return None
+
+
+# =============================================================================
+# BUILD CONTEXT
+# =============================================================================
 
 def build_context(documents):
 
@@ -69,13 +126,20 @@ CONTENT:
     return "\n\n".join(context_parts)
 
 
+# =============================================================================
+# EXTRACT PLAN NAMES
+# =============================================================================
+
 def extract_recommended_plans(documents):
 
     plans = []
 
     for doc in documents:
 
-        source = doc.metadata.get("source", "")
+        source = doc.metadata.get(
+            "source",
+            ""
+        )
 
         plan_name = (
             source
@@ -85,29 +149,47 @@ def extract_recommended_plans(documents):
         )
 
         if plan_name not in plans:
+
             plans.append(plan_name)
 
     return plans
 
 
-def generate_response(
+# =============================================================================
+# STREAMING RESPONSE
+# =============================================================================
+
+def stream_response(
     query,
     retrieval_context,
-    simulation_result
+    simulation_result,
+    conversation_history=""
 ):
 
-    response = client.chat.completions.create(
+    start_time = time.time()
+
+    stream = client.chat.completions.create(
+
         model="gpt-4.1-mini",
+
         temperature=0.2,
+
+        stream=True,
+
         messages=[
+
             {
                 "role": "system",
                 "content": SYSTEM_PROMPT
             },
+
             {
                 "role": "user",
                 "content": f"""
-USER QUERY:
+CONVERSATION HISTORY:
+{conversation_history}
+
+CURRENT USER QUERY:
 {query}
 
 SIMULATION RESULT:
@@ -116,72 +198,101 @@ SIMULATION RESULT:
 RETRIEVED PENSION CONTEXT:
 {retrieval_context}
 
-Generate:
-1. Retirement readiness assessment
-2. Pension projection explanation
-3. Suitable pension plan recommendations
-4. Gap analysis if retirement target is weak
-5. Actionable recommendations
+Generate a retirement response STRICTLY using:
+
+1. Retrieved pension context
+2. Simulation results
+3. Conversation history for conversational continuity
+
+Do NOT use external financial knowledge.
+
+If information is missing from retrieved documents,
+explicitly say:
+"I could not find this information in the retrieved pension documents."
+
+STRICT FORMAT:
+1. Retirement readiness summary
+2. Top recommended plans
+3. Key retirement risks
+4. Actionable next steps
+
+Rules:
+- maximum 400-500 words
+- short paragraphs
+- bullet points preferred
+- avoid repeating numbers
+- avoid generic financial disclaimers
+
+If this is a follow-up question:
+- answer directly
+- avoid full report regeneration
+- keep response concise
+- reference previous retirement analysis
 """
             }
         ]
     )
 
-    return response.choices[0].message.content
+    collected_response = ""
 
+    for chunk in stream:
 
-def run_retirement_copilot():
+        delta = chunk.choices[0].delta
 
-    query = """
-    I am 52 years old with ₹35L corpus and ₹35K monthly SIP.
-    I want guaranteed retirement income at age 60.
-    Which pension plans are suitable for me?
-    """
+        if delta.content:
 
-    logger.info(f"Received query: {query}")
+            collected_response += delta.content
 
-    filters = detect_filters(query)
+            yield {
 
-    logger.info(f"Applied filters: {filters}")
+                "type": "content",
 
-    documents = retrieve_documents(
-        query=query,
-        filters=filters,
-        k=4
+                "chunk":
+                    delta.content,
+
+                "full_response":
+                    collected_response
+            }
+
+    end_time = time.time()
+
+    backend_time = round(
+        end_time - start_time,
+        2
     )
 
-    logger.info(f"Retrieved {len(documents)} documents")
+    # =========================================================================
+    # TOKEN ESTIMATION
+    # =========================================================================
 
-    retrieval_context = build_context(documents)
-
-    recommended_plans = extract_recommended_plans(documents)
-
-    logger.info(f"Recommended plans: {recommended_plans}")
-
-    simulation_result = run_retirement_simulation(
-        current_age=52,
-        retirement_age=60,
-        current_corpus=3500000,
-        monthly_investment=35000,
-        annual_return=0.10
+    estimated_tokens = int(
+        len(collected_response.split()) * 1.3
     )
 
-    logger.info("Simulation completed")
-
-    generated_response = generate_response(
-        query=query,
-        retrieval_context=retrieval_context,
-        simulation_result=simulation_result
+    estimated_cost = round(
+        (estimated_tokens / 1_000_000) * 1.60,
+        6
     )
 
-    logger.info("Generated final retirement copilot response")
+    yield {
 
-    formatted_response = format_retirement_response(
-        simulation_result=simulation_result,
-        recommended_plans=recommended_plans,
-        generated_response=generated_response
-    )
+        "type": "complete",
 
-    logger.info("Formatted structured response")
+        "generated_response":
+            collected_response,
 
-    return formatted_response
+        "backend_time":
+            backend_time,
+
+        "prompt_tokens":
+            0,
+
+        "completion_tokens":
+            estimated_tokens,
+
+        "total_tokens":
+            estimated_tokens,
+
+        "estimated_cost":
+            estimated_cost
+    }

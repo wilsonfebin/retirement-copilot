@@ -1,114 +1,163 @@
-# Retirement CoPilot
+# 💰 Retirement CoPilot
 
-AI-powered Retirement Planning CoPilot for HDFC Bank pension products using RAG, financial simulations, and agentic recommendation orchestration.
+AI-powered Retirement Planning CoPilot for HDFC Bank pension products with:
 
----
-
-# Overview
-
-Retirement CoPilot is a domain-specific GenAI assistant designed to help customers:
-- understand retirement readiness
-- estimate future retirement corpus
-- simulate pension outcomes
-- receive grounded pension product recommendations
-- compare guaranteed vs market-linked retirement plans
-
-The system combines:
-- metadata-aware RAG
-- pension knowledge retrieval
-- financial projection models
-- AI orchestration
-- structured recommendation generation
-
----
-
-# Key Features
-
-## Metadata-Aware Pension RAG
-- Pension product markdown knowledge base
-- OpenAI embeddings
+- Retrieval-Augmented Generation (RAG)
+- Retirement simulation engine
+- Streaming AI responses
+- Strict grounded pension-document reasoning
+- Conversational memory
+- Modular AI orchestration
 - ChromaDB vector retrieval
-- Semantic search with metadata filtering
+- Streamlit conversational UI
 
 ---
 
-## Retirement Simulation Engine
-- Future corpus projection
-- SIP growth estimation
-- Monthly pension estimation
-- Retirement readiness classification
+# 🚀 Features
+
+## ✅ Retirement Planning Assistant
+
+Supports:
+
+- retirement readiness analysis
+- pension corpus estimation
+- SIP-based retirement projections
+- guaranteed vs market-linked pension comparisons
+- retirement risk analysis
+- grounded pension product recommendations
 
 ---
 
-## AI Recommendation Orchestration
-- Suitability-aware pension recommendations
-- Guaranteed vs market-linked reasoning
-- Risk-profile aligned retrieval
-- Grounded financial explanation generation
+# 🎨 Adobe Firefly Enhancement Direction
+
+This project is being designed as a foundation for future Adobe Firefly-powered retirement visualization workflows.
+
+## Planned Visualization Enhancements
+
+Future enhancements may include:
+
+- retirement lifestyle visualizations
+- pension growth storytelling
+- retirement readiness infographics
+- AI-generated financial visuals
+- personalized retirement scenario imagery
+
+These enhancements are planned on top of the current grounded RAG architecture.
 
 ---
 
-## Structured AI Responses
-- UI-ready structured outputs
-- Recommendation cards support
-- Future dashboard integration support
-- Streamlit-ready response formatting
+# 🧠 AI Architecture
+
+## Retrieval-Augmented Generation (RAG)
+
+The system retrieves relevant pension documents from ChromaDB vector storage before generating responses.
+
+### Grounding Rules
+
+Responses are strictly grounded using:
+
+1. Retrieved pension documents
+2. Retirement simulation outputs
+3. Conversation context
+
+The assistant:
+- does NOT invent pension product features
+- does NOT hallucinate guarantees
+- does NOT use unsupported financial claims
+- explicitly states when information is unavailable
 
 ---
 
-## Observability
-- Structured logging
-- Retrieval tracing
-- Simulation execution logging
+# 📡 Streaming Responses
+
+The assistant streams responses token-by-token for:
+
+- better UX
+- lower perceived latency
+- real-time AI interaction
+
+Includes:
+- thinking workflow indicators
+- retrieval status
+- simulation status
+- live streaming output
 
 ---
 
-# Architecture
+# 🧵 Conversation Threads
 
-```text
-User Query
-    ↓
-Orchestrator Agent
-    ↓
-Metadata-Aware Retrieval
-    ↓
-Simulation Agent
-    ↓
-Financial Projection Engine
-    ↓
-LLM Recommendation Synthesis
-    ↓
-Structured Retirement Response
-```
+Supports:
+- multi-turn retirement conversations
+- follow-up questions
+- contextual memory
+- thread-based chat sessions
+
+Conversation history is used for:
+- contextual understanding
+- follow-up clarification
+- continuity
+
+while still grounding responses on fresh retrieval + simulation.
 
 ---
 
-# Tech Stack
+# 📈 Retirement Simulation Engine
 
-## Frontend
-- Streamlit (in progress)
+Calculates:
+- projected retirement corpus
+- estimated pension income
+- SIP growth projections
+- retirement readiness assessment
 
-## Core AI
-- OpenAI GPT-4.1 Mini
+Inputs:
+- current age
+- retirement age
+- current corpus
+- monthly SIP
+- expected annual returns
 
-## RAG Layer
-- LangChain
+---
+
+# 🔍 Vector Retrieval
+
+Uses:
 - ChromaDB
-- OpenAI Embeddings
+- OpenAI embeddings
+- metadata-aware filtering
+- Max Marginal Relevance (MMR) retrieval
 
-## Knowledge Base
-- Pension markdown documents
-- Metadata-enriched retrieval
-
-## Simulation Layer
-- Python financial projection models
-
-## Observability
-- Structured logging
+Supports:
+- guaranteed pension filtering
+- market-linked filtering
+- contextual pension retrieval
 
 ---
 
-# Project Structure
+# 🖥️ Streamlit Conversational UI
+
+Features:
+- conversational chat interface
+- suggested retirement questions
+- thread history
+- source attribution
+- streaming AI responses
+- retirement projection cards
+- footer observability metrics
+
+---
+
+# 📊 Observability Metrics
+
+Tracks:
+- frontend latency
+- backend latency
+- token usage
+- estimated API cost
+- retrieved sources
+
+---
+
+# 🏗️ Project Structure
 
 ```text
 app/
@@ -118,84 +167,61 @@ app/
 │   ├── simulation_agent.py
 │
 ├── rag/
-│   ├── embeddings.py
-│   ├── vector_store.py
 │   ├── retriever.py
-│   ├── chunker.py
-│   ├── ingestion.py
+│   ├── vector_store.py
 │
-├── simulations/
-│   ├── pension_projection.py
+├── ui/
+│   ├── styles.py
+│   ├── sidebar.py
+│   ├── chat.py
+│   ├── cards.py
+│   └── metrics.py
 │
 ├── observability/
-│   ├── traces.py
-│
-├── docs/
-│   ├── pension_markdowns/
+│   └── traces.py
 │
 ├── utils/
-│   ├── config.py
-│   ├── constants.py
-│   ├── helpers.py
+│   └── helpers.py
 │
-└── main.py (frontend integration in progress)
+└── main.py
 ```
 
 ---
 
-# Example Capabilities
+# ⚙️ Installation
 
-## Pension Recommendation
+## 1. Clone Repository
 
-Input:
-
-```text
-I want guaranteed retirement income at age 60.
+```bash
+git clone <your_repo_url>
+cd retirement-copilot
 ```
 
-Output:
-- Suitable pension plans
-- Risk-aligned recommendations
-- Guaranteed income analysis
-- Retirement gap assessment
-
 ---
 
-## Retirement Simulation
+## 2. Create Virtual Environment
 
-Input:
-
-```text
-Current corpus: ₹35L
-Monthly SIP: ₹35K
-Retirement age: 60
+```bash
+python -m venv venv
 ```
 
-Output:
-- Projected retirement corpus
-- Estimated monthly pension
-- Retirement readiness classification
+Activate:
+
+### macOS/Linux
+
+```bash
+source venv/bin/activate
+```
+
+### Windows
+
+```bash
+venv\\Scripts\\activate
+```
 
 ---
 
-# Current Status
-
-## Backend MVP Completed
-
-Implemented:
-- metadata-aware RAG
-- semantic retrieval
-- retirement simulation engine
-- AI recommendation orchestration
-- structured response generation
-
-Frontend Streamlit integration is currently in progress.
-
----
-
-# Setup Instructions
-
-## Install Dependencies
+## 3. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -203,52 +229,134 @@ pip install -r requirements.txt
 
 ---
 
-## Configure Environment
+# 🔐 Environment Variables
 
-Create `.env`
+Create:
+
+```text
+.env
+```
+
+Add:
 
 ```env
-OPENAI_API_KEY=your_openai_api_key
+OPENAI_API_KEY=your_openai_key
 ```
 
 ---
 
-## Run Pension Document Ingestion
+# ▶️ Run Application
 
 ```bash
-python -m app.rag.ingestion
+streamlit run app/main.py
 ```
 
 ---
 
-## Test Retrieval
+# 🧪 Example Queries
 
-```bash
-python test_retrieval.py
+## Retirement Readiness
+
+```text
+Can I retire comfortably at 60?
+```
+
+## Pension Estimation
+
+```text
+How much SIP is needed for ₹1L monthly pension?
+```
+
+## Product Comparison
+
+```text
+Market-linked or guaranteed pension plans?
+```
+
+## Risk Analysis
+
+```text
+Why is my retirement readiness weak?
 ```
 
 ---
 
-## Test Orchestrator
+# 🧠 Current AI Capabilities
 
-```bash
-python test_orchestrator.py
-```
+## Implemented
 
----
-
-# Future Enhancements
-
-- Streamlit dashboard
-- Monte Carlo retirement simulations
-- Firefly visualization integration
-- LangSmith observability
-- Scenario comparison engine
-- Dynamic suitability scoring
-- Multi-agent orchestration
+✅ Strict grounded RAG  
+✅ Streaming AI responses  
+✅ Threaded conversations  
+✅ Source attribution  
+✅ Retirement simulation engine  
+✅ Pension retrieval filters  
+✅ Conversational memory  
+✅ Observability metrics  
+✅ Modular architecture  
 
 ---
 
-# Disclaimer
+# 🚧 Planned Enterprise Enhancements
 
-This project is intended for educational and demonstration purposes only and should not be treated as financial advice.
+## Next Phase
+
+- Guardrails
+- Hallucination detection
+- Evaluation framework
+- Intent routing
+- Hybrid retrieval
+- Retrieval confidence scoring
+- Groundedness metrics
+- BM25 + vector search
+- Agentic orchestration
+- Adobe Firefly visualization integration
+
+---
+
+# 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| LLM | OpenAI GPT-4.1-mini |
+| Vector DB | ChromaDB |
+| Embeddings | OpenAI Embeddings |
+| UI | Streamlit |
+| Retrieval | LangChain |
+| Observability | Custom Metrics |
+| Language | Python |
+
+---
+
+# 🎯 Design Goals
+
+This project focuses on:
+
+- grounded enterprise AI
+- retirement advisory workflows
+- production-style RAG architecture
+- conversational financial copilots
+- observable AI systems
+- modular AI infrastructure
+
+---
+
+# 📌 Notes
+
+This project is intended for:
+- AI engineering demonstrations
+- RAG architecture exploration
+- retirement advisory copilots
+- enterprise GenAI experimentation
+
+It is NOT intended as licensed financial advice.
+
+---
+
+# 👨‍💻 Author
+
+Built as a production-style AI Retirement Planning CoPilot using:
+- RAG
+- streaming orchestration
+- grounded AI reasoning
+- simulation-driven retirement analysis
