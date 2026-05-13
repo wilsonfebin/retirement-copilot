@@ -6,6 +6,12 @@ import time
 import streamlit as st
 
 from app.ui.styles import load_css
+from app.guardrails.retrieval_guard import (
+    validate_retrieval
+)
+from app.guardrails.intent_guard import (
+    classify_query_intent
+)
 
 from app.ui.sidebar import (
     render_knowledge_modules,
@@ -155,7 +161,7 @@ suggested_questions = [
 
     "Can I retire comfortably at 60?",
 
-    "Why is my retirement readiness weak?",
+    "Gap Analysis: Am I on track for my retirement goals?",
 
     "How much SIP is needed for ₹1L pension?",
 
@@ -317,7 +323,17 @@ Assistant:
     # =========================================================================
     # LIVE STATUS + STREAMING
     # =========================================================================
+    is_valid_query = classify_query_intent(
+        user_query
+    )
 
+    if not is_valid_query:
+        st.error(
+            "Query appears unrelated to retirement planning or pension products."
+        )
+
+        st.stop()
+        
     workflow_container = st.container()
 
     response_placeholder = st.empty()
@@ -354,6 +370,15 @@ Assistant:
                 filters=filters,
                 k=4
             )
+            guardrail_result = validate_retrieval(
+                documents
+            )
+
+            if not guardrail_result["is_valid"]:
+                st.error(
+                    guardrail_result["reason"]
+                )
+                st.stop()
 
             retrieval_context = build_context(
                 documents
