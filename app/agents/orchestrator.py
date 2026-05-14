@@ -1,3 +1,7 @@
+# =============================================================================
+# app/agents/orchestrator.py
+# =============================================================================
+
 from dotenv import load_dotenv
 from openai import OpenAI
 import time
@@ -7,55 +11,65 @@ load_dotenv()
 client = OpenAI()
 
 
+# =============================================================================
+# SYSTEM PROMPT
+# =============================================================================
+
 SYSTEM_PROMPT = """
-You are an AI Retirement Planning CoPilot for HDFC Bank.
+You are an enterprise-grade AI Retirement Planning CoPilot for HDFC Bank.
 
 Your responsibilities:
-- recommend suitable retirement products
 - explain retirement readiness
+- recommend suitable pension products
 - compare guaranteed vs market-linked plans
-- explain financial tradeoffs
+- explain retirement tradeoffs
+- summarize retirement risks
+- provide grounded retirement guidance
 
 Grounding Rules:
 - ONLY use retrieved pension documents
 - ONLY use provided simulation results
 - NEVER use external financial knowledge
-- NEVER invent pension features, guarantees, returns, tax benefits, or eligibility rules
-- NEVER assume details not explicitly present in retrieved context
-- if information is unavailable in retrieved documents,
-  explicitly say:
-  "I could not find this information in the retrieved pension documents."
+- NEVER invent pension features, guarantees, tax benefits, returns, lock-ins, or eligibility rules
+- NEVER assume information not explicitly present in retrieved context
+- prioritize factual grounding over conversational creativity
 
 Conversation Rules:
 - use conversation history only for conversational continuity
-- do not rely on memory as factual source
-- always prioritize retrieved documents and simulation outputs
-- if the query is a follow-up question,
-  answer directly without regenerating full reports
+- do not use memory as factual knowledge
+- always prioritize retrieved pension context and simulation outputs
+- if this is a follow-up question,
+  answer directly without regenerating the entire report
 - avoid repeating previous explanations
 
 Response Rules:
-- keep answers concise and practical
-- use short paragraphs
-- use bullet points where useful
+- keep responses concise and dashboard-oriented
+- avoid long paragraphs
+- use short actionable insights
+- maximum 350 words
 - avoid repetition
-- avoid lengthy financial disclaimers
-- keep total response under 500 words
-- keep follow-up answers under 150 words
-- focus on actionable retirement guidance grounded in retrieved documents
+- avoid unnecessary disclaimers
+- avoid generic financial advice
+- provide the best grounded answer possible
+
+Formatting Rules:
+- use markdown headings
+- use concise bullets
+- maintain enterprise dashboard tone
+- highlight only the most important retirement insights
 
 Accuracy Rules:
-- do not invent financial numbers
-- do not generalize retirement advice
+- do not invent financial calculations
+- do not generate unsupported retirement assumptions
 - do not generate unsupported pension comparisons
-- every recommendation must be supported by retrieved context
-- if retrieved context is insufficient,
-  clearly acknowledge the limitation
+- every recommendation must be supported by retrieved documents or simulation results
+- if retrieved context is partially insufficient,
+  briefly acknowledge limitations
 
 Use ONLY:
 1. Retrieved pension context
 2. Simulation results
-3. Conversation history for contextual understanding
+3. Conversation history for continuity
 """
 
 
@@ -109,14 +123,12 @@ def build_context(documents):
     for i, doc in enumerate(documents):
 
         context_parts.append(
+
             f"""
 DOCUMENT {i + 1}
 
 SOURCE:
 {doc.metadata.get("source")}
-
-METADATA:
-{doc.metadata}
 
 CONTENT:
 {doc.page_content}
@@ -142,13 +154,18 @@ def extract_recommended_plans(documents):
         )
 
         plan_name = (
+
             source
             .replace(".md", "")
             .replace("_", " ")
             .title()
         )
 
-        if plan_name not in plans:
+        if (
+            plan_name
+            and
+            plan_name not in plans
+        ):
 
             plans.append(plan_name)
 
@@ -156,13 +173,17 @@ def extract_recommended_plans(documents):
 
 
 # =============================================================================
-# STREAMING RESPONSE
+# STREAM RESPONSE
 # =============================================================================
 
 def stream_response(
+
     query,
+
     retrieval_context,
+
     simulation_result,
+
     conversation_history=""
 ):
 
@@ -172,7 +193,7 @@ def stream_response(
 
         model="gpt-4.1-mini",
 
-        temperature=0.2,
+        temperature=0.15,
 
         stream=True,
 
@@ -180,11 +201,13 @@ def stream_response(
 
             {
                 "role": "system",
+
                 "content": SYSTEM_PROMPT
             },
 
             {
                 "role": "user",
+
                 "content": f"""
 CONVERSATION HISTORY:
 {conversation_history}
@@ -198,36 +221,40 @@ SIMULATION RESULT:
 RETRIEVED PENSION CONTEXT:
 {retrieval_context}
 
-Generate a retirement response STRICTLY using:
+Generate a concise enterprise-style retirement response.
 
-1. Retrieved pension context
-2. Simulation results
-3. Conversation history for conversational continuity
+STRICT OUTPUT FORMAT:
 
-Do NOT use external financial knowledge.
+## Retirement Readiness Summary
 
-If information is missing from retrieved documents,
-explicitly say:
-"I could not find this information in the retrieved pension documents."
+- concise readiness summary
+- 2-3 bullets maximum
 
-STRICT FORMAT:
-1. Retirement readiness summary
-2. Top recommended plans
-3. Key retirement risks
-4. Actionable next steps
+## Top Recommended Plans
 
-Rules:
-- maximum 400-500 words
-- short paragraphs
-- bullet points preferred
-- avoid repeating numbers
-- avoid generic financial disclaimers
+- maximum 2 pension recommendations
+- recommendations MUST be grounded in retrieved context
 
-If this is a follow-up question:
-- answer directly
-- avoid full report regeneration
-- keep response concise
-- reference previous retirement analysis
+## Key Retirement Risks
+
+- maximum 3 bullets
+- mention only relevant risks
+
+## Actionable Next Steps
+
+- maximum 3 concise action items
+
+IMPORTANT RULES:
+
+- avoid repeating numbers excessively
+- avoid long explanations
+- avoid generic financial education
+- avoid unsupported pension claims
+- use concise dashboard-style insights
+- prioritize clarity over verbosity
+- do not regenerate full reports for follow-up questions
+- if retrieved context is insufficient,
+  acknowledge briefly and continue with grounded insights
 """
             }
         ]
@@ -235,13 +262,19 @@ If this is a follow-up question:
 
     collected_response = ""
 
+    # =========================================================================
+    # STREAMING
+    # =========================================================================
+
     for chunk in stream:
 
         delta = chunk.choices[0].delta
 
         if delta.content:
 
-            collected_response += delta.content
+            collected_response += (
+                delta.content
+            )
 
             yield {
 
@@ -257,7 +290,9 @@ If this is a follow-up question:
     end_time = time.time()
 
     backend_time = round(
+
         end_time - start_time,
+
         2
     )
 
@@ -266,13 +301,23 @@ If this is a follow-up question:
     # =========================================================================
 
     estimated_tokens = int(
-        len(collected_response.split()) * 1.3
+
+        len(
+            collected_response.split()
+        ) * 1.3
     )
 
     estimated_cost = round(
-        (estimated_tokens / 1_000_000) * 1.60,
+
+        (estimated_tokens / 1_000_000)
+        * 1.60,
+
         6
     )
+
+    # =========================================================================
+    # FINAL EVENT
+    # =========================================================================
 
     yield {
 

@@ -5,12 +5,22 @@
 import time
 import streamlit as st
 
+from app.ui.charts import (
+    render_corpus_growth_chart
+)
+
 from app.ui.styles import load_css
+
 from app.guardrails.retrieval_guard import (
     validate_retrieval
 )
+
 from app.guardrails.intent_guard import (
     classify_query_intent
+)
+
+from app.agents.query_parser import (
+    extract_financial_targets
 )
 
 from app.ui.sidebar import (
@@ -41,7 +51,9 @@ from app.agents.orchestrator import (
     stream_response
 )
 
-from app.rag.retriever import retrieve_documents
+from app.rag.retriever import (
+    retrieve_documents
+)
 
 from app.agents.simulation_agent import (
     run_retirement_simulation
@@ -57,8 +69,11 @@ from app.utils.helpers import (
 # =============================================================================
 
 st.set_page_config(
+
     page_title="Retirement CoPilot",
+
     page_icon="💰",
+
     layout="wide"
 )
 
@@ -68,7 +83,9 @@ st.set_page_config(
 # =============================================================================
 
 st.markdown(
+
     load_css(),
+
     unsafe_allow_html=True
 )
 
@@ -91,11 +108,14 @@ if "active_conversation" not in st.session_state:
 # HEADER
 # =============================================================================
 
-st.title("💰 Retirement CoPilot")
+st.title(
+    "💰 Retirement CoPilot"
+)
 
 st.markdown(
     """
-AI-powered Retirement Planning CoPilot for HDFC Bank pension products.
+AI-powered Retirement Analytics Dashboard
+for HDFC Bank pension products.
 """
 )
 
@@ -104,38 +124,116 @@ AI-powered Retirement Planning CoPilot for HDFC Bank pension products.
 # SIDEBAR
 # =============================================================================
 
-st.sidebar.header("Customer Profile")
+st.sidebar.header(
+    "Customer Profile"
+)
 
 current_age = st.sidebar.number_input(
+
     "Current Age",
+
     18,
+
     80,
-    52
+
+    40
 )
 
 retirement_age = st.sidebar.number_input(
+
     "Retirement Age",
+
     40,
+
     80,
+
     60
 )
 
 current_corpus = st.sidebar.number_input(
+
     "Current Corpus (₹)",
-    value=3500000,
-    step=100000
+
+    value=0,
+
+    step=50000
 )
 
 monthly_investment = st.sidebar.number_input(
+
     "Monthly SIP (₹)",
-    value=35000,
+
+    value=10000,
+
     step=5000
 )
 
 risk_profile = st.sidebar.selectbox(
+
     "Risk Profile",
+
     ["low", "moderate", "high"]
 )
+
+
+# =============================================================================
+# RISK-BASED RETURNS
+# =============================================================================
+
+if risk_profile == "low":
+
+    annual_return = 0.07
+
+elif risk_profile == "moderate":
+
+    annual_return = 0.10
+
+else:
+
+    annual_return = 0.13
+
+
+# =============================================================================
+# LIVE SIMULATION PREVIEW
+# =============================================================================
+
+simulation_preview = (
+    run_retirement_simulation(
+
+        current_age=current_age,
+
+        retirement_age=retirement_age,
+
+        current_corpus=current_corpus,
+
+        monthly_investment=monthly_investment,
+
+        annual_return=annual_return
+    )
+)
+
+render_projection_cards(
+    simulation_preview
+)
+
+st.divider()
+
+render_corpus_growth_chart(
+
+    simulation_result=simulation_preview,
+
+    risk_profile=risk_profile,
+
+    annual_return=annual_return,
+
+    monthly_investment=monthly_investment,
+
+    retirement_age=retirement_age,
+
+    target_monthly_income=None
+)
+
+st.divider()
 
 
 # =============================================================================
@@ -153,43 +251,41 @@ render_chat_controls()
 # SUGGESTED QUESTIONS
 # =============================================================================
 
-st.divider()
-
-st.subheader("💡 Suggested Questions")
+st.subheader(
+    "💡 Suggested Questions"
+)
 
 suggested_questions = [
 
-    "Can I retire comfortably at 60?",
+    "My retirement projections?",
 
     "Gap Analysis: Am I on track for my retirement goals?",
 
-    "How much SIP is needed for ₹1L pension?",
+    "Which pension plans provide guaranteed income?",
 
-    "What pension can my corpus generate?",
+    "Which pension plans offer lifelong income after retirement?",
 
-    "Which plans provide guaranteed pension income?",
-
-    "Market-linked or guaranteed plans?",
-
-    "How much retirement corpus do I need?",
+    "Key benefits of HDFC pension products?",
 
     "What happens if I stop SIP contributions?"
 ]
 
 selected_question = None
 
-question_cols = st.columns(4)
+question_cols = st.columns(3)
 
 for idx, question in enumerate(
     suggested_questions
 ):
 
-    col = question_cols[idx % 4]
+    col = question_cols[idx % 3]
 
     with col:
 
         if st.button(
+
             question,
+
             key=f"suggestion_{idx}"
         ):
 
@@ -204,7 +300,6 @@ user_query = st.chat_input(
     "Ask Retirement CoPilot..."
 )
 
-
 if selected_question:
 
     user_query = selected_question
@@ -216,19 +311,25 @@ if selected_question:
 
 if (
     user_query
-    and st.session_state.active_conversation
+    and
+    st.session_state.active_conversation
     is None
 ):
 
     st.session_state.conversations.append(
+
         {
             "title": "New Chat",
+
             "messages": []
         }
     )
 
     st.session_state.active_conversation = (
-        len(st.session_state.conversations) - 1
+
+        len(
+            st.session_state.conversations
+        ) - 1
     )
 
 
@@ -245,6 +346,7 @@ if user_query:
     # =========================================================================
 
     current_conversation = (
+
         st.session_state.conversations[
             st.session_state.active_conversation
         ]
@@ -255,18 +357,22 @@ if user_query:
     # =========================================================================
 
     is_follow_up = (
+
         len(
             current_conversation["messages"]
         ) > 0
     )
 
     # =========================================================================
-    # CONVERSATION MEMORY
+    # LIGHTWEIGHT CONVERSATION MEMORY
     # =========================================================================
 
-    recent_messages = current_conversation[
-        "messages"
-    ][-3:]
+    recent_messages = (
+
+        current_conversation[
+            "messages"
+        ][-3:]
+    )
 
     conversation_history = ""
 
@@ -276,64 +382,77 @@ if user_query:
 User:
 {msg['question']}
 
-Assistant:
-{msg['response']['generated_response'][:1200]}
-
+Assistant Summary:
+Previous retirement guidance discussed.
 """
 
     # =========================================================================
     # QUERY BUILDING
     # =========================================================================
 
-    if is_follow_up:
+    query = f"""
+Current User Question:
+{user_query}
 
-        query = f"""
-        Previous conversation context:
-        {conversation_history}
+Customer Profile:
+Current age: {current_age}
+Retirement age: {retirement_age}
+Current corpus: ₹{current_corpus}
+Monthly SIP: ₹{monthly_investment}
+Risk profile: {risk_profile}
 
-        Current question:
-        {user_query}
+Conversation Context:
+{conversation_history}
+"""
 
-        Customer profile:
-        Current age: {current_age}
-        Retirement age: {retirement_age}
-        Current corpus: ₹{current_corpus}
-        Monthly SIP: ₹{monthly_investment}
-        Risk profile: {risk_profile}
-        """
+    # =========================================================================
+    # FINANCIAL TARGET EXTRACTION
+    # =========================================================================
 
-    else:
+    financial_targets = (
+        extract_financial_targets(
+            user_query
+        )
+    )
 
-        query = f"""
-        {user_query}
+    target_pension = financial_targets.get(
+        "target_pension"
+    )
 
-        Current age: {current_age}
-        Retirement age: {retirement_age}
-        Current corpus: ₹{current_corpus}
-        Monthly SIP: ₹{monthly_investment}
-        Risk profile: {risk_profile}
-        """
+    target_corpus = financial_targets.get(
+        "target_corpus"
+    )
 
     # =========================================================================
     # FILTERS
     # =========================================================================
 
-    filters = detect_filters(query)
+    filters = detect_filters(
+        query
+    )
 
     # =========================================================================
-    # LIVE STATUS + STREAMING
+    # QUERY VALIDATION
     # =========================================================================
-    is_valid_query = classify_query_intent(
-        user_query
+
+    is_valid_query = (
+        classify_query_intent(
+            user_query
+        )
     )
 
     if not is_valid_query:
+
         st.error(
             "Query appears unrelated to retirement planning or pension products."
         )
 
         st.stop()
-        
+
+    # =========================================================================
+    # STATUS
+    # =========================================================================
+
     workflow_container = st.container()
 
     response_placeholder = st.empty()
@@ -353,8 +472,11 @@ Assistant:
     with workflow_container:
 
         with st.status(
+
             "Processing retirement analysis...",
+
             expanded=True
+
         ) as status:
 
             # ================================================================
@@ -366,22 +488,32 @@ Assistant:
             )
 
             documents = retrieve_documents(
+
                 query=query,
+
                 filters=filters,
+
                 k=4
             )
-            guardrail_result = validate_retrieval(
-                documents
+
+            guardrail_result = (
+                validate_retrieval(
+                    documents
+                )
             )
 
             if not guardrail_result["is_valid"]:
+
                 st.error(
                     guardrail_result["reason"]
                 )
+
                 st.stop()
 
-            retrieval_context = build_context(
-                documents
+            retrieval_context = (
+                build_context(
+                    documents
+                )
             )
 
             recommended_plans = (
@@ -395,16 +527,21 @@ Assistant:
             # ================================================================
 
             st.write(
-                "📈 Running retirement simulation..."
+                "📈 Running retirement simulations..."
             )
 
             simulation_result = (
                 run_retirement_simulation(
+
                     current_age=current_age,
+
                     retirement_age=retirement_age,
+
                     current_corpus=current_corpus,
+
                     monthly_investment=monthly_investment,
-                    annual_return=0.10
+
+                    annual_return=annual_return
                 )
             )
 
@@ -413,11 +550,13 @@ Assistant:
             # ================================================================
 
             st.write(
-                "🤖 Thinking and generating response..."
+                "🤖 Generating retirement insights..."
             )
 
             status.update(
+
                 label="Streaming response...",
+
                 state="running"
             )
 
@@ -426,58 +565,70 @@ Assistant:
             # ================================================================
 
             for event in stream_response(
+
                 query=query,
+
                 retrieval_context=retrieval_context,
+
                 simulation_result=simulation_result,
+
                 conversation_history=conversation_history
             ):
 
                 if event["type"] == "content":
 
-                    streamed_text = event[
-                        "full_response"
-                    ]
+                    streamed_text = (
+                        event["full_response"]
+                    )
 
                     response_placeholder.markdown(
+
                         f"""
 <div class="assistant-card">
+
 {streamed_text}▌
+
 </div>
 """,
+
                         unsafe_allow_html=True
                     )
 
                 elif event["type"] == "complete":
 
-                    backend_time = event[
-                        "backend_time"
-                    ]
+                    backend_time = (
+                        event["backend_time"]
+                    )
 
-                    prompt_tokens = event[
-                        "prompt_tokens"
-                    ]
+                    prompt_tokens = (
+                        event["prompt_tokens"]
+                    )
 
-                    completion_tokens = event[
-                        "completion_tokens"
-                    ]
+                    completion_tokens = (
+                        event["completion_tokens"]
+                    )
 
-                    total_tokens = event[
-                        "total_tokens"
-                    ]
+                    total_tokens = (
+                        event["total_tokens"]
+                    )
 
-                    estimated_cost = event[
-                        "estimated_cost"
-                    ]
+                    estimated_cost = (
+                        event["estimated_cost"]
+                    )
 
             status.update(
+
                 label="Analysis complete",
+
                 state="complete"
             )
 
     frontend_end = time.time()
 
     frontend_time = round(
+
         frontend_end - frontend_start,
+
         2
     )
 
@@ -486,6 +637,7 @@ Assistant:
     # =========================================================================
 
     formatted_response = (
+
         format_retirement_response(
 
             simulation_result=
@@ -523,7 +675,9 @@ Assistant:
     for doc in documents:
 
         source = doc.metadata.get(
+
             "source",
+
             "Unknown"
         )
 
@@ -546,6 +700,7 @@ Assistant:
     # =========================================================================
 
     if (
+
         current_conversation["title"]
         == "New Chat"
     ):
@@ -561,6 +716,7 @@ Assistant:
     current_conversation[
         "messages"
     ].append(
+
         {
             "question":
                 user_query,
@@ -587,87 +743,67 @@ Assistant:
 
 
 # =============================================================================
-# RENDER CONVERSATION
+# RENDER CONVERSATION HISTORY
 # =============================================================================
 
 if (
+
     len(st.session_state.conversations)
     > 0
-    and st.session_state.active_conversation
+
+    and
+
+    st.session_state.active_conversation
     is not None
 ):
 
     conversation = (
+
         st.session_state.conversations[
             st.session_state.active_conversation
         ]
     )
 
-    # =========================================================================
-    # LATEST MESSAGE FIRST
-    # =========================================================================
+    st.divider()
+
+    st.subheader(
+        "💬 Retirement Insights History"
+    )
 
     reversed_messages = list(
+
         enumerate(
             conversation["messages"]
         )
+
     )[::-1]
 
     for idx, message in reversed_messages:
-
-        st.divider()
 
         render_user_message(
             message["question"]
         )
 
-        st.divider()
-
-        # ================================================================
-        # SHOW CARDS ONLY FOR INITIAL QUERY
-        # ================================================================
-
-        if idx == 0:
-
-            render_projection_cards(
-                message["response"]
-            )
-
-            st.divider()
-
-            render_recommended_plans(
-                message["response"]
-            )
-
-            st.divider()
-
-        # ================================================================
-        # ASSISTANT RESPONSE
-        # ================================================================
-
         render_assistant_message(
+
             message["response"][
                 "generated_response"
             ]
         )
 
-        st.divider()
-
-        # ================================================================
-        # SOURCES FOR EVERY RESPONSE
-        # ================================================================
+        render_recommended_plans(
+            message["response"]
+        )
 
         render_sources(
             message["documents"]
         )
 
-        st.divider()
-
-        # ================================================================
-        # FOOTER METRICS
-        # ================================================================
-
         render_footer_metrics(
+
             message["response"],
+
             message["frontend_time"]
         )
+
+        st.divider()
