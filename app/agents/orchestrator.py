@@ -341,3 +341,39 @@ IMPORTANT RULES:
         "estimated_cost":
             estimated_cost
     }
+
+    # =============================================================================
+# NON-STREAMING RESPONSE
+# =============================================================================
+
+def generate_response(
+
+    query,
+
+    retrieval_context,
+
+    simulation_result,
+
+    conversation_history=""
+):
+
+    full_response = ""
+
+    for event in stream_response(
+
+        query=query,
+
+        retrieval_context=retrieval_context,
+
+        simulation_result=simulation_result,
+
+        conversation_history=conversation_history
+    ):
+
+        if event["type"] == "content":
+
+            full_response = event[
+                "full_response"
+            ]
+
+    return full_response

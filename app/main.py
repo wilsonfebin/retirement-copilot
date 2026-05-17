@@ -11,10 +11,6 @@ from app.ui.charts import (
 
 from app.ui.styles import load_css
 
-from app.guardrails.retrieval_guard import (
-    validate_retrieval
-)
-
 from app.guardrails.intent_guard import (
     classify_query_intent
 )
@@ -44,19 +40,12 @@ from app.ui.metrics import (
     render_footer_metrics
 )
 
-from app.agents.orchestrator import (
-    detect_filters,
-    build_context,
-    extract_recommended_plans,
-    stream_response
+from app.api.simulation_client import (
+    get_retirement_simulation
 )
 
-from app.rag.retriever import (
-    retrieve_documents
-)
-
-from app.agents.simulation_agent import (
-    run_retirement_simulation
+from app.api.analysis_client import (
+    stream_retirement_analysis
 )
 
 from app.utils.helpers import (
@@ -198,7 +187,7 @@ else:
 # =============================================================================
 
 simulation_preview = (
-    run_retirement_simulation(
+    get_retirement_simulation(
 
         current_age=current_age,
 
@@ -341,10 +330,6 @@ if user_query:
 
     frontend_start = time.time()
 
-    # =========================================================================
-    # ACTIVE CONVERSATION
-    # =========================================================================
-
     current_conversation = (
 
         st.session_state.conversations[
@@ -352,20 +337,12 @@ if user_query:
         ]
     )
 
-    # =========================================================================
-    # FOLLOW-UP DETECTION
-    # =========================================================================
-
     is_follow_up = (
 
         len(
             current_conversation["messages"]
         ) > 0
     )
-
-    # =========================================================================
-    # LIGHTWEIGHT CONVERSATION MEMORY
-    # =========================================================================
 
     recent_messages = (
 
@@ -386,10 +363,6 @@ Assistant Summary:
 Previous retirement guidance discussed.
 """
 
-    # =========================================================================
-    # QUERY BUILDING
-    # =========================================================================
-
     query = f"""
 Current User Question:
 {user_query}
@@ -405,10 +378,6 @@ Conversation Context:
 {conversation_history}
 """
 
-    # =========================================================================
-    # FINANCIAL TARGET EXTRACTION
-    # =========================================================================
-
     financial_targets = (
         extract_financial_targets(
             user_query
@@ -422,18 +391,6 @@ Conversation Context:
     target_corpus = financial_targets.get(
         "target_corpus"
     )
-
-    # =========================================================================
-    # FILTERS
-    # =========================================================================
-
-    filters = detect_filters(
-        query
-    )
-
-    # =========================================================================
-    # QUERY VALIDATION
-    # =========================================================================
 
     is_valid_query = (
         classify_query_intent(
@@ -450,14 +407,14 @@ Conversation Context:
         st.stop()
 
     # =========================================================================
-    # STATUS
+    # STREAMING RESPONSE
     # =========================================================================
 
-    workflow_container = st.container()
-
-    response_placeholder = st.empty()
-
     streamed_text = ""
+
+    recommended_plans = []
+
+    formatted_documents = []
 
     backend_time = 0
 
@@ -469,159 +426,101 @@ Conversation Context:
 
     estimated_cost = 0
 
-    with workflow_container:
+    status_placeholder = st.empty()
 
-        with st.status(
+    response_container = st.empty()
 
-            "Processing retirement analysis...",
+    status_placeholder.info(
+        "🤖 Generating retirement insights..."
+    )
 
-            expanded=True
+    for event in stream_retirement_analysis(
 
-        ) as status:
+        query=query,
 
-            # ================================================================
-            # RETRIEVAL
-            # ================================================================
+        current_age=current_age,
 
-            st.write(
-                "🔍 Retrieving pension documents..."
+        retirement_age=retirement_age,
+
+        current_corpus=current_corpus,
+
+        monthly_investment=monthly_investment,
+
+        risk_profile=risk_profile,
+
+        annual_return=annual_return
+    ):
+
+        # =====================================================================
+        # TOKEN STREAM
+        # =====================================================================
+
+        if event["type"] == "token":
+
+            streamed_text += (
+                event["content"]
             )
 
-            documents = retrieve_documents(
+            response_container.text(
 
-                query=query,
-
-                filters=filters,
-
-                k=4
+                streamed_text + "▌"
             )
 
-            guardrail_result = (
-                validate_retrieval(
-                    documents
-                )
-            )
+        # =====================================================================
+        # FINAL EVENT
+        # =====================================================================
 
-            if not guardrail_result["is_valid"]:
-
-                st.error(
-                    guardrail_result["reason"]
-                )
-
-                st.stop()
-
-            retrieval_context = (
-                build_context(
-                    documents
-                )
-            )
+        elif event["type"] == "complete":
 
             recommended_plans = (
-                extract_recommended_plans(
-                    documents
-                )
+                event[
+                    "recommended_plans"
+                ]
             )
 
-            # ================================================================
-            # SIMULATION
-            # ================================================================
-
-            st.write(
-                "📈 Running retirement simulations..."
+            formatted_documents = (
+                event[
+                    "documents"
+                ]
             )
 
-            simulation_result = (
-                run_retirement_simulation(
-
-                    current_age=current_age,
-
-                    retirement_age=retirement_age,
-
-                    current_corpus=current_corpus,
-
-                    monthly_investment=monthly_investment,
-
-                    annual_return=annual_return
-                )
+            backend_time = (
+                event[
+                    "backend_time"
+                ]
             )
 
-            # ================================================================
-            # GENERATION
-            # ================================================================
-
-            st.write(
-                "🤖 Generating retirement insights..."
+            prompt_tokens = (
+                event[
+                    "prompt_tokens"
+                ]
             )
 
-            status.update(
-
-                label="Streaming response...",
-
-                state="running"
+            completion_tokens = (
+                event[
+                    "completion_tokens"
+                ]
             )
 
-            # ================================================================
-            # STREAM RESPONSE
-            # ================================================================
-
-            for event in stream_response(
-
-                query=query,
-
-                retrieval_context=retrieval_context,
-
-                simulation_result=simulation_result,
-
-                conversation_history=conversation_history
-            ):
-
-                if event["type"] == "content":
-
-                    streamed_text = (
-                        event["full_response"]
-                    )
-
-                    response_placeholder.markdown(
-
-                        f"""
-<div class="assistant-card">
-
-{streamed_text}▌
-
-</div>
-""",
-
-                        unsafe_allow_html=True
-                    )
-
-                elif event["type"] == "complete":
-
-                    backend_time = (
-                        event["backend_time"]
-                    )
-
-                    prompt_tokens = (
-                        event["prompt_tokens"]
-                    )
-
-                    completion_tokens = (
-                        event["completion_tokens"]
-                    )
-
-                    total_tokens = (
-                        event["total_tokens"]
-                    )
-
-                    estimated_cost = (
-                        event["estimated_cost"]
-                    )
-
-            status.update(
-
-                label="Analysis complete",
-
-                state="complete"
+            total_tokens = (
+                event[
+                    "total_tokens"
+                ]
             )
+
+            estimated_cost = (
+                event[
+                    "estimated_cost"
+                ]
+            )
+
+    status_placeholder.success(
+        "✅ Analysis complete"
+    )
+
+    simulation_result = (
+        simulation_preview
+    )
 
     frontend_end = time.time()
 
@@ -633,7 +532,7 @@ Conversation Context:
     )
 
     # =========================================================================
-    # FINAL STRUCTURED RESPONSE
+    # FORMAT RESPONSE
     # =========================================================================
 
     formatted_response = (
@@ -667,35 +566,6 @@ Conversation Context:
     )
 
     # =========================================================================
-    # UNIQUE SOURCES
-    # =========================================================================
-
-    unique_sources = {}
-
-    for doc in documents:
-
-        source = doc.metadata.get(
-
-            "source",
-
-            "Unknown"
-        )
-
-        if source not in unique_sources:
-
-            unique_sources[source] = {
-
-                "source": source,
-
-                "content":
-                    doc.page_content[:1500]
-            }
-
-    formatted_documents = list(
-        unique_sources.values()
-    )
-
-    # =========================================================================
     # UPDATE CHAT TITLE
     # =========================================================================
 
@@ -710,7 +580,7 @@ Conversation Context:
         )
 
     # =========================================================================
-    # APPEND MESSAGE
+    # SAVE MESSAGE
     # =========================================================================
 
     current_conversation[
@@ -734,12 +604,6 @@ Conversation Context:
                 is_follow_up
         }
     )
-
-    # =========================================================================
-    # CLEAN STREAM PLACEHOLDER
-    # =========================================================================
-
-    response_placeholder.empty()
 
 
 # =============================================================================

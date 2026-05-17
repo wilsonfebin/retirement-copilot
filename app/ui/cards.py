@@ -253,29 +253,46 @@ def render_recommended_plans(response):
 
         st.markdown(
 
-            f"""
-<div class="plan-card">
+    f"""
+<div style="
+background: linear-gradient(
+90deg,
+rgba(16,185,129,0.18),
+rgba(34,197,94,0.10)
+);
+border:1px solid rgba(16,185,129,0.18);
+border-radius:14px;
+padding:16px 20px;
+margin-bottom:12px;
+">
 
-<div class="plan-title">
+<div style="
+font-size:24px;
+font-weight:700;
+color:white;
+margin-bottom:6px;
+">
+
 {plan}
+
 </div>
 
 <div style="
-margin-top:10px;
+font-size:15px;
 color:#CBD5E1;
-line-height:1.7;
+line-height:1.4;
 ">
 
 Recommended based on retrieved pension
-documents and current retirement profile.
+documents and retirement profile.
 
 </div>
 
 </div>
 """,
 
-            unsafe_allow_html=True
-        )
+    unsafe_allow_html=True
+    )
 
 
 # =============================================================================

@@ -105,21 +105,5 @@ Grounded Response
     # =========================================================================
 
     st.markdown(
-
-        '<div class="assistant-card">',
-
-        unsafe_allow_html=True
-    )
-
-    # =========================================================================
-    # PURE MARKDOWN RENDERING
-    # =========================================================================
-
-    st.markdown(
         response
-    )
-
-    st.markdown(
-        "</div>",
-        unsafe_allow_html=True
     )
