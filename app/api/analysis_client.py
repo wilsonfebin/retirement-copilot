@@ -58,7 +58,7 @@ def stream_retirement_analysis(
 
     response = requests.post(
 
-        f"{API_BASE_URLBASE_URL}/analyze-stream",
+        f"{API_BASE_URL}/analyze-stream",
 
         json=payload,
 
