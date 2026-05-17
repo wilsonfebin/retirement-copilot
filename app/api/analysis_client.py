@@ -6,7 +6,9 @@ import requests
 import json
 
 
-BASE_URL = "http://127.0.0.1:8000"
+import streamlit as st
+
+BASE_URL = st.secrets["BACKEND_URL"]
 
 
 # =============================================================================
