@@ -5,50 +5,50 @@
 import time
 import streamlit as st
 
-from app.ui.charts import (
+from ui.charts import (
     render_corpus_growth_chart
 )
 
-from app.ui.styles import load_css
+from ui.styles import load_css
 
-from app.guardrails.intent_guard import (
+from guardrails.intent_guard import (
     classify_query_intent
 )
 
-from app.agents.query_parser import (
+from agents.query_parser import (
     extract_financial_targets
 )
 
-from app.ui.sidebar import (
+from ui.sidebar import (
     render_knowledge_modules,
     render_chat_history,
     render_chat_controls
 )
 
-from app.ui.chat import (
+from ui.chat import (
     render_user_message,
     render_assistant_message
 )
 
-from app.ui.cards import (
+from ui.cards import (
     render_projection_cards,
     render_recommended_plans,
     render_sources
 )
 
-from app.ui.metrics import (
+from ui.metrics import (
     render_footer_metrics
 )
 
-from app.api.simulation_client import (
+from api.simulation_client import (
     get_retirement_simulation
 )
 
-from app.api.analysis_client import (
+from api.analysis_client import (
     stream_retirement_analysis
 )
 
-from app.utils.helpers import (
+from utils.helpers import (
     format_retirement_response
 )
 
