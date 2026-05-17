@@ -8,7 +8,7 @@ import json
 
 import streamlit as st
 
-BASE_URL = st.secrets["BACKEND_URL"]
+API_BASE_URL = st.secrets["BACKEND_URL"]
 
 
 # =============================================================================
