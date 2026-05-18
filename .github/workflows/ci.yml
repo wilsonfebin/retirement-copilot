@@ -5,6 +5,12 @@ on:
   push:
     branches:
       - main
+      - streamlit-deploy
+
+  pull_request:
+    branches:
+      - main
+      - streamlit-deploy
 
 jobs:
 
@@ -14,16 +20,50 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install Dependencies
+      # ============================================================
+      # FRONTEND DEPENDENCIES
+      # ============================================================
+
+      - name: Install Frontend Dependencies
         run: |
           pip install -r requirements/frontend.txt
 
-      - name: Validate Imports
+      # ============================================================
+      # BACKEND DEPENDENCIES
+      # ============================================================
+
+      - name: Install Backend Dependencies
+        run: |
+          pip install -r requirements/backend.txt
+
+      # ============================================================
+      # PYTHON COMPILE CHECK
+      # ============================================================
+
+      - name: Validate Python Compilation
         run: |
           python -m compileall .
+
+      # ============================================================
+      # FASTAPI IMPORT CHECK
+      # ============================================================
+
+      - name: Validate FastAPI App
+        run: |
+          python -c "from backend.main import app"
+
+      # ============================================================
+      # STREAMLIT IMPORT CHECK
+      # ============================================================
+
+      - name: Validate Streamlit Imports
+        run: |
+          python -c "import streamlit"
