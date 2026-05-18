@@ -45,7 +45,7 @@ from api.simulation_client import (
 )
 
 from api.analysis_client import (
-    stream_retirement_analysis
+    stream_retirement_analysis_local
 )
 
 from utils.helpers import (
@@ -434,7 +434,7 @@ Conversation Context:
         "🤖 Generating retirement insights..."
     )
 
-    for event in stream_retirement_analysis(
+    for event in stream_retirement_analysis_local(
 
         query=query,
 

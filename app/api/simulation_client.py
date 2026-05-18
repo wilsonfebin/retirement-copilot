@@ -2,19 +2,17 @@
 # app/api/simulation_client.py
 # =============================================================================
 
-import requests
+from backend.services.simulation_service import (
+    simulate_retirement
+)
+
+from backend.models.simulation_models import (
+    SimulationRequest
+)
 
 
 # =============================================================================
-# API CONFIG
-# =============================================================================
-
-import streamlit as st
-
-API_BASE_URL = st.secrets["BACKEND_URL"]
-
-# =============================================================================
-# RETIREMENT SIMULATION API
+# GET RETIREMENT SIMULATION
 # =============================================================================
 
 def get_retirement_simulation(
@@ -30,33 +28,21 @@ def get_retirement_simulation(
     annual_return
 ):
 
-    payload = {
+    request = SimulationRequest(
 
-        "current_age":
-            current_age,
+        current_age=current_age,
 
-        "retirement_age":
-            retirement_age,
+        retirement_age=retirement_age,
 
-        "current_corpus":
-            current_corpus,
+        current_corpus=current_corpus,
 
-        "monthly_investment":
-            monthly_investment,
+        monthly_investment=monthly_investment,
 
-        "annual_return":
-            annual_return
-    }
-
-    response = requests.post(
-
-        f"{API_BASE_URL}/simulate",
-
-        json=payload,
-
-        timeout=30
+        annual_return=annual_return
     )
 
-    response.raise_for_status()
+    simulation_result = simulate_retirement(
+        request
+    )
 
-    return response.json()
+    return simulation_result
