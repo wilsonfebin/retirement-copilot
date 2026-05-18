@@ -2,13 +2,18 @@
 # app/api/analysis_client.py
 # =============================================================================
 
-import requests
 import json
-
-
+import requests
 import streamlit as st
 
-API_BASE_URL = st.secrets["BACKEND_URL"]
+
+# =============================================================================
+# API CONFIG
+# =============================================================================
+
+API_BASE_URL = st.secrets[
+    "BACKEND_URL"
+]
 
 
 # =============================================================================
@@ -62,15 +67,45 @@ def stream_retirement_analysis(
 
         json=payload,
 
-        stream=True
+        stream=True,
+
+        timeout=300
     )
 
     response.raise_for_status()
 
-    for line in response.iter_lines():
+    # =========================================================================
+    # SSE STREAM PARSING
+    # =========================================================================
 
-        if line:
+    for line in response.iter_lines(
 
-            yield json.loads(
-                line.decode("utf-8")
-            )
+        decode_unicode=True
+    ):
+
+        if not line:
+
+            continue
+
+        if line.startswith(
+            "data: "
+        ):
+
+            try:
+
+                json_data = line.replace(
+
+                    "data: ",
+
+                    ""
+                )
+
+                parsed_event = json.loads(
+                    json_data
+                )
+
+                yield parsed_event
+
+            except Exception:
+
+                continue

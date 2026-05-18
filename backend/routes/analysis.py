@@ -42,5 +42,5 @@ def analyze_stream(request: AnalysisRequest):
 
         event_generator(),
 
-        media_type="application/json"
+        media_type="text/event-stream"
     )
