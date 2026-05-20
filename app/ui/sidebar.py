@@ -57,7 +57,7 @@ def render_chat_history():
             if st.button(
                 title,
                 key=f"conversation_{idx}",
-                use_container_width=True,
+                width="stretch",
                 type=button_type
             ):
 

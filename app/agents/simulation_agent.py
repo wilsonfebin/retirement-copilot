@@ -44,16 +44,8 @@ def run_retirement_simulation(
     annual_return=0.10
 ):
 
-    logger.info(
-        "Starting retirement simulation"
-    )
-
     years_to_retirement = (
         retirement_age - current_age
-    )
-
-    logger.info(
-        f"Years to retirement: {years_to_retirement}"
     )
 
     # =========================================================================
@@ -173,8 +165,5 @@ def run_retirement_simulation(
             projection_points
     }
 
-    logger.info(
-        f"Simulation result: {simulation_result}"
-    )
 
     return simulation_result
