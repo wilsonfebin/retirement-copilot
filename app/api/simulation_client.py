@@ -2,14 +2,18 @@
 # app/api/simulation_client.py
 # =============================================================================
 
-from backend.services.simulation_service import (
-    simulate_retirement
+from agents.simulation_agent import (
+    run_retirement_simulation
 )
 
 from backend.models.simulation_models import (
     SimulationRequest
 )
 
+
+# =============================================================================
+# GET RETIREMENT SIMULATION
+# =============================================================================
 
 # =============================================================================
 # GET RETIREMENT SIMULATION
@@ -28,7 +32,7 @@ def get_retirement_simulation(
     annual_return
 ):
 
-    request = SimulationRequest(
+    simulation_result = run_retirement_simulation(
 
         current_age=current_age,
 
@@ -39,10 +43,6 @@ def get_retirement_simulation(
         monthly_investment=monthly_investment,
 
         annual_return=annual_return
-    )
-
-    simulation_result = simulate_retirement(
-        request
     )
 
     return simulation_result

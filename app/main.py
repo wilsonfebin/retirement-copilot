@@ -4,51 +4,59 @@
 
 import time
 import streamlit as st
+import sys
+from pathlib import Path
 
-from ui.charts import (
+ROOT_DIR = Path(__file__).resolve().parent.parent
+
+if str(ROOT_DIR) not in sys.path:
+
+    sys.path.append(str(ROOT_DIR))
+
+from app.ui.charts import (
     render_corpus_growth_chart
 )
 
-from ui.styles import load_css
+from app.ui.styles import load_css
 
-from guardrails.intent_guard import (
+from app.guardrails.intent_guard import (
     classify_query_intent
 )
 
-from agents.query_parser import (
+from app.agents.query_parser import (
     extract_financial_targets
 )
 
-from ui.sidebar import (
+from app.ui.sidebar import (
     render_knowledge_modules,
     render_chat_history,
     render_chat_controls
 )
 
-from ui.chat import (
+from app.ui.chat import (
     render_user_message,
     render_assistant_message
 )
 
-from ui.cards import (
+from app.ui.cards import (
     render_projection_cards,
     render_recommended_plans,
     render_sources
 )
 
-from ui.metrics import (
+from app.ui.metrics import (
     render_footer_metrics
 )
 
-from api.simulation_client import (
+from app.api.simulation_client import (
     get_retirement_simulation
 )
 
-from api.analysis_client import (
+from app.api.analysis_client import (
     stream_retirement_analysis_local
 )
 
-from utils.helpers import (
+from app.utils.helpers import (
     format_retirement_response
 )
 

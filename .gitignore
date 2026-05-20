@@ -11,9 +11,6 @@ venv/
 # Mac
 .DS_Store
 
-# ChromaDB
-chroma_db/
-
 # Logs
 *.log
 
