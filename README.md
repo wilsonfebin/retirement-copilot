@@ -8,9 +8,7 @@ Retirement CoPilot enables users to simulate retirement outcomes, analyze retire
 
 # 🚀 Live Demo
 
-```text
-hhttps://retirement-copilot.streamlit.app
-```
+https://retirement-copilot.streamlit.app
 
 ---
 
@@ -18,19 +16,19 @@ hhttps://retirement-copilot.streamlit.app
 
 ## Dashboard Overview
 
-![alt text](screenshots/ui-dashboard.png)
+![alt text](screesnshots/ui-dashboard.png)
 
 ---
 
 ## AI Retirement Insights & Summary
 
-![alt text](screenshots/insights.png)
+![alt text](screesnshots/insights.png)
 
 ---
 
 ## Grounded Sources
 
-![alt text](screenshots/sources.png)
+![alt text](screesnshots/sources.png)
 
 ---
 
