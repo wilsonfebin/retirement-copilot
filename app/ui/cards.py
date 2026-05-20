@@ -112,7 +112,7 @@ font-size:15px;
 color:#CBD5E1;
 line-height:1.7;
 ">
-Projected retirement savings at retirement age.
+Projected retirement corpus.
 </div>
 
 </div>
@@ -163,8 +163,7 @@ font-size:15px;
 color:#CBD5E1;
 line-height:1.7;
 ">
-Projected sustainable retirement income
-based on corpus withdrawal assumptions.
+Estimated monthly retirement income.
 </div>
 
 </div>
@@ -215,8 +214,7 @@ font-size:15px;
 color:#CBD5E1;
 line-height:1.7;
 ">
-Overall retirement preparedness
-based on current investment trajectory.
+Current retirement preparedness.
 </div>
 
 </div>
