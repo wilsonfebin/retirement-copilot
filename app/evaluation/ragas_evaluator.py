@@ -19,102 +19,54 @@ from ragas.metrics import (
 def evaluate_response(
 
     query,
-
     retrieved_context,
-
     generated_response
-
 ):
 
     try:
 
-        # =============================================================
+        dataset = Dataset.from_dict({
 
-        # BASIC HEURISTICS
+            "question": [query],
 
-        # =============================================================
+            "answer": [generated_response],
 
-        context_length = len(
+            "contexts": [[retrieved_context]]
+        })
 
-            retrieved_context
+        result = evaluate(
 
+            dataset,
+
+            metrics=[
+
+                faithfulness,
+
+                answer_relevancy
+            ]
         )
 
-        response_length = len(
+        scores = result.to_pandas().iloc[0]
 
-            generated_response
+        groundedness = round(
 
+            scores["faithfulness"] * 100
         )
 
-        query_words = set(
+        answer_relevance = round(
 
-            query.lower().split()
-
-        )
-
-        response_words = set(
-
-            generated_response.lower().split()
-
-        )
-
-        overlap = len(
-
-            query_words.intersection(
-
-                response_words
-
-            )
-
+            scores["answer_relevancy"] * 100
         )
 
         # =============================================================
-
-        # GROUNDEDNESS
-
-        # =============================================================
-
-        if context_length > 500:
-
-            groundedness = 92
-
-        elif context_length > 200:
-
-            groundedness = 84
-
-        else:
-
-            groundedness = 72
-
-        # =============================================================
-
-        # ANSWER RELEVANCE
-
-        # =============================================================
-
-        if overlap >= 5:
-
-            answer_relevance = 94
-
-        elif overlap >= 3:
-
-            answer_relevance = 86
-
-        else:
-
-            answer_relevance = 74
-
-        # =============================================================
-
         # HALLUCINATION RISK
-
         # =============================================================
 
         if groundedness >= 90:
 
             hallucination_risk = "Low"
 
-        elif groundedness >= 80:
+        elif groundedness >= 70:
 
             hallucination_risk = "Moderate"
 
@@ -125,33 +77,27 @@ def evaluate_response(
         return {
 
             "groundedness":
-
                 groundedness,
 
             "answer_relevance":
-
                 answer_relevance,
 
             "hallucination_risk":
-
                 hallucination_risk
-
         }
 
     except Exception as e:
 
         print(
 
-            f"AI quality evaluation failed: {e}"
-
+            f"Ragas evaluation failed: {e}"
         )
 
         return {
 
-            "groundedness": 0,
+            "groundedness": None,
 
-            "answer_relevance": 0,
+            "answer_relevance": None,
 
             "hallucination_risk": "Unknown"
-
         }
