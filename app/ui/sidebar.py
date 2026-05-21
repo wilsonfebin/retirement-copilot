@@ -181,7 +181,3 @@ def render_chat_controls():
         st.session_state.active_conversation = None
 
         st.rerun()
-
-    st.sidebar.divider()
-
-    return enable_ragas
