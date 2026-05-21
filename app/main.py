@@ -60,6 +60,11 @@ from utils.helpers import (
     format_retirement_response
 )
 
+from app.evaluation.ragas_evaluator import (
+
+    evaluate_response
+
+)
 
 # =============================================================================
 # PAGE CONFIG
@@ -525,6 +530,33 @@ Conversation Context:
     status_placeholder.success(
         "✅ Analysis complete"
     )
+    retrieved_context = "\n".join(
+
+        [
+
+            doc.get(
+
+                "content",
+
+                ""
+
+            )
+
+            for doc in formatted_documents
+
+        ]
+
+    )
+
+    ragas_metrics = evaluate_response(
+
+        query=user_query,
+
+        retrieved_context=retrieved_context,
+
+        generated_response=streamed_text
+
+    )
 
     simulation_result = (
         simulation_preview
@@ -569,7 +601,9 @@ Conversation Context:
                 total_tokens,
 
             estimated_cost=
-                estimated_cost
+                estimated_cost,
+            ragas_metrics=
+                ragas_metrics
         )
     )
 

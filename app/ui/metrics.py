@@ -39,3 +39,59 @@ padding-bottom:8px;
 """,
         unsafe_allow_html=True
     )
+
+    ragas_metrics = response.get(
+
+        "ragas_metrics"
+
+    )
+
+    if ragas_metrics:
+
+        st.markdown(
+
+            "### 🧠 AI Quality Metrics"
+
+        )
+
+        metric_col1, metric_col2, metric_col3 = (
+
+            st.columns(3)
+
+        )
+
+        with metric_col1:
+
+            st.metric(
+
+                "Groundedness",
+
+                f"{ragas_metrics.get('groundedness', 0)}%"
+
+            )
+
+        with metric_col2:
+
+            st.metric(
+
+                "Answer Relevance",
+
+                f"{ragas_metrics.get('answer_relevance', 0)}%"
+
+            )
+
+        with metric_col3:
+
+            st.metric(
+
+                "Hallucination Risk",
+
+                ragas_metrics.get(
+
+                    "hallucination_risk",
+
+                    "Unknown"
+
+                )
+
+            )

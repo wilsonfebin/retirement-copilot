@@ -6,6 +6,22 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import time
 
+from app.evaluation.ragas_evaluator import (
+    evaluate_response
+)
+
+print(
+
+    evaluate_response(
+
+        query="What pension plans provide guaranteed income?",
+
+        retrieved_context="Sample pension context",
+
+        generated_response="Sample grounded response"
+    )
+)
+
 load_dotenv()
 
 client = OpenAI()
