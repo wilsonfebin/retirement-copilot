@@ -6,25 +6,23 @@ def get_vector_store_instance():
     return get_vector_store()
 
 
-def retrieve_documents(query, filters=None, k=4):
+def retrieve_documents(query, filters=None, k=2):
 
     vectordb = get_vector_store_instance()
 
     if filters:
 
-        results = vectordb.max_marginal_relevance_search(
+        results = vectordb.similarity_search(
             query=query,
             k=k,
-            fetch_k=10,
             filter=filters
         )
 
     else:
 
-        results = vectordb.max_marginal_relevance_search(
+        results = vectordb.similarity_search(
             query=query,
             k=k,
-            fetch_k=10
         )
 
     return results

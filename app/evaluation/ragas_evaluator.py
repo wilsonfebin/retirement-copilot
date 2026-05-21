@@ -11,9 +11,30 @@ from ragas.metrics import (
     answer_relevancy
 )
 
+from langchain_openai import (
+    ChatOpenAI,
+    OpenAIEmbeddings
+)
+
 
 # =============================================================================
-# EVALUATE RESPONSE
+# EVALUATOR MODELS
+# =============================================================================
+
+evaluator_llm = ChatOpenAI(
+
+    model="gpt-4o-mini",
+
+    temperature=0
+)
+
+evaluator_embeddings = (
+    OpenAIEmbeddings()
+)
+
+
+# =============================================================================
+# RAGAS EVALUATION
 # =============================================================================
 
 def evaluate_response(
@@ -25,48 +46,118 @@ def evaluate_response(
 
     try:
 
-        dataset = Dataset.from_dict({
+        # =============================================================
+        # TRUNCATE CONTEXT
+        # =============================================================
 
-            "question": [query],
+        truncated_context = (
 
-            "answer": [generated_response],
+            retrieved_context[:1500]
+        )
 
-            "contexts": [[retrieved_context]]
-        })
+        # =============================================================
+        # DATASET
+        # =============================================================
+
+        dataset = Dataset.from_dict(
+
+            {
+
+                "question": [
+
+                    query
+                ],
+
+                "answer": [
+
+                    generated_response
+                ],
+
+                "contexts": [[
+
+                    truncated_context
+                ]]
+            }
+        )
+
+        # =============================================================
+        # RUN EVALUATION
+        # =============================================================
 
         result = evaluate(
 
-            dataset,
+            dataset=dataset,
 
             metrics=[
 
                 faithfulness,
-
                 answer_relevancy
-            ]
+            ],
+
+            llm=evaluator_llm,
+
+            embeddings=evaluator_embeddings
         )
 
-        scores = result.to_pandas().iloc[0]
+        # =============================================================
+        # DEBUG LOGS
+        # =============================================================
 
-        groundedness = round(
-
-            scores["faithfulness"] * 100
+        print(
+            "RAGAS RESULT:"
         )
 
-        answer_relevance = round(
+        print(result)
 
-            scores["answer_relevancy"] * 100
+        print(
+            type(result)
+        )
+
+        # =============================================================
+        # CONVERT TO PANDAS
+        # =============================================================
+
+        scores = result.to_pandas()
+
+        print(
+            scores
+        )
+
+        # =============================================================
+        # EXTRACT SCORES
+        # =============================================================
+
+        faithfulness_score = round(
+
+            float(
+
+                scores[
+                    "faithfulness"
+                ][0]
+
+            ) * 100
+        )
+
+        relevancy_score = round(
+
+            float(
+
+                scores[
+                    "answer_relevancy"
+                ][0]
+
+            ) * 100
         )
 
         # =============================================================
         # HALLUCINATION RISK
         # =============================================================
 
-        if groundedness >= 90:
+        if faithfulness_score >= 90:
 
             hallucination_risk = "Low"
 
-        elif groundedness >= 70:
+        elif faithfulness_score >= 75:
 
             hallucination_risk = "Moderate"
 
@@ -74,13 +165,17 @@ def evaluate_response(
 
             hallucination_risk = "High"
 
+        # =============================================================
+        # RETURN
+        # =============================================================
+
         return {
 
             "groundedness":
-                groundedness,
+                faithfulness_score,
 
             "answer_relevance":
-                answer_relevance,
+                relevancy_score,
 
             "hallucination_risk":
                 hallucination_risk
@@ -88,16 +183,19 @@ def evaluate_response(
 
     except Exception as e:
 
-        print(
+        import traceback
 
+        traceback.print_exc()
+
+        print(
             f"Ragas evaluation failed: {e}"
         )
 
         return {
 
-            "groundedness": None,
+            "groundedness": 0,
 
-            "answer_relevance": None,
+            "answer_relevance": 0,
 
             "hallucination_risk": "Unknown"
         }

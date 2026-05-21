@@ -29,6 +29,7 @@ from agents.query_parser import (
 
 from ui.sidebar import (
     render_knowledge_modules,
+    render_ai_evaluation_toggle,
     render_chat_history,
     render_chat_controls
 )
@@ -243,11 +244,8 @@ st.divider()
 # =============================================================================
 
 render_knowledge_modules()
-
 render_chat_history()
-
-render_chat_controls()
-
+enable_ragas = render_ai_evaluation_toggle()
 
 # =============================================================================
 # SUGGESTED QUESTIONS
@@ -428,6 +426,7 @@ Conversation Context:
     recommended_plans = []
 
     formatted_documents = []
+    retrieved_context_text = ""
 
     backend_time = 0
 
@@ -548,15 +547,46 @@ Conversation Context:
 
     )
 
-    ragas_metrics = evaluate_response(
+    ragas_metrics = None
+    
+    retrieved_context_text = "\n\n".join(
 
-        query=user_query,
+                [
 
-        retrieved_context=retrieved_context,
+                    doc.get(
 
-        generated_response=streamed_text
+                        "content",
+
+                        ""
+
+                    )
+
+                    for doc in formatted_documents
+
+                ]
 
     )
+
+        # ==========================================================
+
+        # RUN RAGAS
+
+        # ==========================================================
+    if enable_ragas:
+
+        ragas_metrics = (
+
+            evaluate_response(
+
+                query=user_query,
+
+                retrieved_context=(retrieved_context_text),
+
+                generated_response=(streamed_text)
+
+            )
+
+        )
 
     simulation_result = (
         simulation_preview
