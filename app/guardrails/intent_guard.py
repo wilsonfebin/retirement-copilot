@@ -50,22 +50,27 @@ INVALID
 
                 {
                     "role": "user",
-
                     "content": query
                 }
             ]
         )
 
         result = (
-
-            response
-            .choices[0]
-            .message.content
-            .strip()
-            .upper()
+           response
+           .choices[0]
+           .message.content
+           .strip()
+           .upper()
         )
 
-        return result == "VALID"
+        print(
+          f"Intent Classification: {result}"
+        )  
+
+        if "INVALID" in result:
+            return False
+
+        return True
 
     except APIConnectionError:
 
