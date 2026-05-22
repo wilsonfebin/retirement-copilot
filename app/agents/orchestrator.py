@@ -323,6 +323,20 @@ def stream_response(
 
     start_time = time.time()
 
+    # =========================================================================
+    # TOKEN METRICS
+    # =========================================================================
+
+    prompt_tokens = 0
+
+    completion_tokens = 0
+
+    total_tokens = 0
+
+    # =========================================================================
+    # OPENAI STREAM
+    # =========================================================================
+
     stream = client.chat.completions.create(
 
         model="gpt-4.1-mini",
@@ -330,6 +344,11 @@ def stream_response(
         temperature=0.15,
 
         stream=True,
+
+        stream_options={
+
+            "include_usage": True
+        },
 
         messages=[
 
@@ -359,24 +378,24 @@ Generate a concise enterprise-style retirement response.
 
 STRICT OUTPUT FORMAT:
 
-## Retirement Readiness Summary
+## Simulation Projections
 
-- concise readiness summary
+- concise projection summary
 - 2-3 bullets maximum
 
-## Top Recommended Plans
+## Retrieved Product Signals
 
-- maximum 2 pension recommendations
-- recommendations MUST be grounded in retrieved context
+- maximum 2 grounded pension observations
+- recommendations MUST map to retrieved attributes
 
-## Key Retirement Risks
+## Retrieved Risk Indicators
 
-- maximum 3 bullets
-- mention only relevant risks
+- maximum 3 concise grounded risk bullets
 
 ## Actionable Next Steps
 
 - maximum 3 concise action items
+- grounded only in retrieved context or simulation outputs
 
 IMPORTANT RULES:
 
@@ -401,6 +420,36 @@ IMPORTANT RULES:
     # =========================================================================
 
     for chunk in stream:
+
+        # =============================================================
+        # USAGE METADATA
+        # =============================================================
+
+        if hasattr(chunk, "usage") and chunk.usage:
+
+            usage = chunk.usage
+
+            prompt_tokens = usage.prompt_tokens or 0
+
+            completion_tokens = (
+                usage.completion_tokens or 0
+            )
+
+            total_tokens = usage.total_tokens or 0
+
+            continue
+
+        # =============================================================
+        # EMPTY CHUNKS
+        # =============================================================
+
+        if not chunk.choices:
+
+            continue
+
+        # =============================================================
+        # DELTA
+        # =============================================================
 
         delta = chunk.choices[0].delta
 
@@ -431,23 +480,36 @@ IMPORTANT RULES:
     )
 
     # =========================================================================
-    # TOKEN ESTIMATION
+    # COST CALCULATION
     # =========================================================================
-
-    estimated_tokens = int(
-
-        len(
-            collected_response.split()
-        ) * 1.3
-    )
 
     estimated_cost = round(
 
-        (estimated_tokens / 1_000_000)
-        * 1.60,
+        (
+            (prompt_tokens / 1_000_000) * 0.40
+        )
+        +
+        (
+            (completion_tokens / 1_000_000) * 1.60
+        ),
 
         6
     )
+
+    # =========================================================================
+    # FALLBACK TOKEN ESTIMATION
+    # =========================================================================
+
+    if total_tokens == 0:
+
+        completion_tokens = int(
+
+            len(
+                collected_response.split()
+            ) * 1.3
+        )
+
+        total_tokens = completion_tokens
 
     # =========================================================================
     # FINAL EVENT
@@ -464,19 +526,23 @@ IMPORTANT RULES:
             backend_time,
 
         "prompt_tokens":
-            0,
+            prompt_tokens,
 
         "completion_tokens":
-            estimated_tokens,
+            completion_tokens,
 
         "total_tokens":
-            estimated_tokens,
+            total_tokens,
 
         "estimated_cost":
-            estimated_cost
+            estimated_cost,
+
+        "model":
+            "gpt-4.1-mini"
     }
 
-    # =============================================================================
+
+# =============================================================================
 # NON-STREAMING RESPONSE
 # =============================================================================
 

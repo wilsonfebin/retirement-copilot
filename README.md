@@ -1,15 +1,30 @@
 # 💰 Retirement CoPilot
 
-Enterprise-grade AI-powered Retirement Planning Assistant built using Streamlit, FastAPI, Retrieval-Augmented Generation (RAG), ChromaDB, and OpenAI LLMs.
+Enterprise-grade AI-powered Retirement Planning Assistant built using Streamlit, FastAPI, Retrieval-Augmented Generation (RAG), ChromaDB, OpenAI LLMs, OpenTelemetry, Arize Phoenix, and RAGAS evaluation pipelines.
 
-Retirement CoPilot enables users to simulate retirement outcomes, analyze retirement readiness, retrieve pension intelligence through semantic search, and generate grounded AI-driven retirement insights via an interactive analytics dashboard and modular backend architecture.
+Retirement CoPilot enables users to:
+- simulate retirement outcomes
+- analyze retirement projections
+- retrieve pension intelligence using semantic search
+- generate grounded AI retirement insights
+- monitor AI quality through observability and evaluation telemetry
+
+The platform combines:
+- RAG-based pension intelligence
+- AI guardrails
+- hallucination reduction
+- OpenTelemetry tracing
+- Phoenix observability
+- RAGAS-based groundedness evaluation
+
+within a modular enterprise-style AI architecture.
 
 ---
 
 # 🚀 Live Demo
 
 ```text
-hhttps://retirement-copilot.streamlit.app
+https://retirement-copilot.streamlit.app
 ```
 
 ---
@@ -18,44 +33,108 @@ hhttps://retirement-copilot.streamlit.app
 
 ## Dashboard Overview
 
-![alt text](screenshots/ui-dashboard.png)
+![Dashboard](screenshots/ui-dashboard.png)
 
 ---
 
-## AI Retirement Insights & Summary
+## AI Retirement Insights
 
-![alt text](screenshots/insights.png)
+![Insights](screenshots/insights.png)
+
+---
+
+## Grounded Pension Sources
+
+![Sources](screenshots/sources.png)
 
 ---
 
-## Grounded Sources
+## Phoenix AI Observability Dashboard
 
-![alt text](screenshots/sources.png)
+![Phoenix Dashboard](screenshots/phoenix-dashboard.png)
 
 ---
+
+## RAGAS Evaluation Metrics
+
+![RAGAS Metrics](screenshots/ragas-metrics.png)
+
+---
+
+## AI Telemetry & Attributes Monitoring
+
+![AI Telemetry](screenshots/ai-telemetry.png)
+
+---
+
+## Phoenix Response Evaluation
+
+![Phoenix Evaluation](screenshots/phoenix-response-evaluation.png)
 
 # ✨ Features
 
 ## AI Retirement Analytics
 
-- AI-generated retirement readiness analysis
+- AI-generated retirement projections
 - Grounded pension recommendations
-- Retirement risk assessment
-- Actionable retirement planning insights
+- Retirement risk analysis
+- Context-aware retirement insights
+- Evidence-based AI responses
+
+---
 
 ## Retirement Simulation Engine
 
-- SIP-based retirement corpus projections
-- Risk-adjusted growth simulations
+- SIP-based corpus projections
+- Risk-adjusted retirement simulations
 - Monthly retirement income estimation
-- Retirement readiness scoring
+- Projection-driven retirement analytics
+
+---
 
 ## RAG-Powered Pension Intelligence
 
 - Retrieval-Augmented Generation (RAG)
-- Pension document semantic search
-- Context-grounded AI responses
-- Hallucination reduction guardrails
+- Semantic pension search
+- ChromaDB vector retrieval
+- Retrieval-grounded AI responses
+- Context-aware recommendation generation
+
+---
+
+## AI Observability & Telemetry
+
+- OpenTelemetry instrumentation
+- Arize Phoenix observability
+- AI workflow tracing
+- Retrieval telemetry
+- Token and cost analytics
+- Latency monitoring
+- Response analytics
+- Streaming AI tracing
+
+---
+
+## RAGAS Evaluation & Hallucination Monitoring
+
+- Groundedness evaluation
+- Answer relevance scoring
+- Hallucination risk classification
+- AI quality telemetry
+- Prompt-governed grounding optimization
+- Evidence-first response evaluation
+
+---
+
+## AI Guardrails
+
+- Intent classification
+- Retrieval validation
+- Grounded response enforcement
+- Hallucination reduction constraints
+- Evidence-bound recommendation generation
+
+---
 
 ## FastAPI Backend Services
 
@@ -65,19 +144,15 @@ hhttps://retirement-copilot.streamlit.app
 - AI analysis service integration
 - Enterprise-ready backend separation
 
+---
+
 ## Interactive Dashboard
 
-- Modern enterprise-style Streamlit UI
-- Corpus growth visualization
+- Enterprise-style Streamlit UI
 - Retirement analytics cards
-- Chat-based retirement assistant
-
-## AI Guardrails
-
-- Intent classification
-- Retrieval validation
-- Grounded response generation
-- Context-aware recommendation filtering
+- Corpus growth visualization
+- AI-powered retirement assistant
+- AI quality metrics dashboard
 
 ---
 
@@ -90,37 +165,49 @@ hhttps://retirement-copilot.streamlit.app
 │      Streamlit UI        │
 │ Dashboard + Chat Layer   │
 └────────────┬─────────────┘
-             │ REST API
+             │
              ▼
 ┌──────────────────────────┐
 │      FastAPI Backend     │
 │ API Gateway + Routing    │
 └────────────┬─────────────┘
              │
-     ┌───────┴────────┐
-     ▼                ▼
-┌──────────────┐ ┌────────────────┐
-│ Simulation   │ │ RAG Retrieval  │
-│ Service      │ │ Service        │
-└──────────────┘ └────────────────┘
-                         │
-                         ▼
-                ┌────────────────┐
-                │ Chroma Vector  │
-                │ Database       │
-                └────────────────┘
-                         │
-                         ▼
-                ┌────────────────┐
-                │ Pension Docs   │
-                │ Embeddings DB  │
-                └────────────────┘
-                         │
-                         ▼
-                ┌────────────────────┐
-                │ LLM Inference Layer│
-                │   OpenAI GPT-4.1   │
-                └────────────────────┘
+     ┌───────┴───────────────┐
+     ▼                       ▼
+┌──────────────┐    ┌────────────────┐
+│ Simulation   │    │ RAG Retrieval  │
+│ Service      │    │ Service        │
+└──────────────┘    └────────────────┘
+                             │
+                             ▼
+                    ┌────────────────┐
+                    │ Chroma Vector  │
+                    │ Database       │
+                    └────────────────┘
+                             │
+                             ▼
+                    ┌────────────────┐
+                    │ Pension Docs   │
+                    │ Embeddings DB  │
+                    └────────────────┘
+                             │
+                             ▼
+                    ┌────────────────────┐
+                    │ LLM Inference Layer│
+                    │ OpenAI GPT-4.1 Mini│
+                    └────────────────────┘
+                             │
+                             ▼
+                    ┌────────────────────┐
+                    │ RAGAS Evaluation   │
+                    │ Groundedness QA    │
+                    └────────────────────┘
+                             │
+                             ▼
+                    ┌────────────────────┐
+                    │ Phoenix + OTEL     │
+                    │ AI Observability   │
+                    └────────────────────┘
 ```
 
 ---
@@ -130,6 +217,10 @@ hhttps://retirement-copilot.streamlit.app
 ## Frontend
 - Streamlit
 - Plotly
+
+## Backend
+- FastAPI
+- Python 3.11
 
 ## AI / LLM
 - OpenAI GPT-4.1 Mini
@@ -141,8 +232,26 @@ hhttps://retirement-copilot.streamlit.app
 ## Embeddings
 - OpenAI Embeddings
 
-## Backend Logic
-- Python 3.11
+## AI Observability
+- OpenTelemetry
+- Arize Phoenix
+
+## AI Evaluation
+- RAGAS
+
+## DevOps / Tooling
+- GitHub Actions CI/CD
+- Docker-ready architecture
+
+---
+
+# 📊 AI Quality Improvements
+
+- Improved RAG groundedness score by ~28% using evidence-bound prompting and retrieval-constrained response generation
+- Implemented hallucination risk monitoring using RAGAS evaluation pipelines
+- Added 15+ custom telemetry attributes for AI workflow diagnostics
+- Integrated OpenTelemetry + Phoenix for end-to-end AI tracing and observability
+- Added token usage, latency, retrieval diagnostics, and AI quality telemetry
 
 ---
 
@@ -154,16 +263,23 @@ retirement-copilot/
 ├── app/
 │   ├── agents/
 │   ├── api/
+│   ├── evaluation/
+│   ├── observability/
 │   ├── rag/
 │   ├── docs/
-│   ├── backend/
 │   ├── ui/
 │   ├── simulations/
 │   ├── guardrails/
 │   ├── utils/
 │   └── main.py
 │
+├── backend/
+│   ├── services/
+│   └── api/
+│
 ├── chroma_db/
+├── screenshots/
+├── .github/workflows/
 ├── requirements.txt
 └── README.md
 ```
@@ -173,33 +289,65 @@ retirement-copilot/
 # 🔍 Core Components
 
 ## Simulation Engine
-Projects retirement corpus growth using:
+
+Projects retirement outcomes using:
 - current age
 - retirement age
 - SIP contribution
 - risk profile
-- annualized returns
+- projected growth assumptions
+
+---
 
 ## RAG Retrieval System
+
 Uses:
 - OpenAI embeddings
 - Chroma vector database
-- semantic pension search
-- grounded retrieval pipeline
+- semantic pension retrieval
+- grounded retrieval pipelines
+
+---
 
 ## AI Orchestrator
+
 Handles:
 - prompt engineering
 - context injection
 - conversation continuity
-- grounded response generation
+- evidence-grounded response generation
+
+---
+
+## AI Observability Layer
+
+Implements:
+- OpenTelemetry tracing
+- Phoenix instrumentation
+- semantic chain tracing
+- retrieval telemetry
+- token/cost monitoring
+- latency analytics
+
+---
+
+## AI Evaluation Layer
+
+Implements:
+- RAGAS groundedness evaluation
+- answer relevance scoring
+- hallucination risk analysis
+- telemetry-driven prompt optimization
+
+---
 
 ## Guardrails
+
 Implements:
-- query intent validation
-- retrieval quality checks
-- hallucination prevention
+- retrieval validation
+- hallucination reduction
 - grounded recommendation enforcement
+- evidence-bound AI response generation
 
 ---
 
@@ -208,7 +356,7 @@ Implements:
 ## Clone Repository
 
 ```bash
-git clone https://github.com/your-username/retirement-copilot.git
+git clone https://github.com/wilsonfebin/retirement-copilot.git
 
 cd retirement-copilot
 ```
@@ -249,6 +397,8 @@ Create `.env`
 
 ```env
 OPENAI_API_KEY=your_openai_api_key
+
+ENABLE_PHOENIX=true
 ```
 
 ---
@@ -269,8 +419,24 @@ chroma_db/
 
 # ▶️ Run Application
 
+## Streamlit App
+
 ```bash
 streamlit run app/main.py
+```
+
+---
+
+## Optional: Run Phoenix Locally
+
+```bash
+docker run -p 6006:6006 arizephoenix/phoenix:latest
+```
+
+Phoenix Dashboard:
+
+```text
+http://localhost:6006
 ```
 
 ---
@@ -289,15 +455,17 @@ streamlit run app/main.py
 
 Retirement CoPilot enforces:
 - retrieval-grounded responses
-- pension-context-only recommendations
+- evidence-bound pension recommendations
 - hallucination reduction
+- grounded AI orchestration
 - controlled retirement guidance generation
 
 The assistant does NOT:
 - invent pension features
-- generate unsupported guarantees
-- fabricate returns or tax benefits
-- use external financial assumptions
+- fabricate returns or guarantees
+- generate unsupported tax assumptions
+- use external financial knowledge
+- produce unsupported retirement conclusions
 
 ---
 
@@ -322,21 +490,23 @@ OPENAI_API_KEY="your_key"
 
 - Multi-user authentication
 - Persistent chat memory
-- Financial goal optimization
-- Advanced Monte Carlo simulations
 - Portfolio allocation engine
-- SaaS multi-tenant architecture
-- Broker/API integrations
+- Monte Carlo retirement simulations
+- Kubernetes deployment
+- Prometheus + Grafana monitoring
+- Terraform infrastructure provisioning
+- SaaS multi-tenant AI architecture
 
 ---
 
 # 📌 Notes
 
 This project is designed as:
-- an AI financial assistant demo
 - enterprise AI architecture showcase
-- RAG + LLM integration reference
-- retirement analytics prototype
+- observable RAG platform prototype
+- AI reliability engineering reference
+- GenAI observability demonstration
+- retirement analytics AI assistant
 
 ---
 
