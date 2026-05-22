@@ -1,0 +1,112 @@
+# =============================================================================
+# .github/workflows/ci.yml
+# =============================================================================
+
+name: Retirement Copilot CI
+
+on:
+
+  push:
+
+    branches:
+
+      - main
+      - streamlit-deploy
+      - feature/phoenix-observability
+
+  pull_request:
+
+    branches:
+
+      - main
+      - streamlit-deploy
+
+
+jobs:
+
+  test:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+
+      matrix:
+
+        python-version:
+
+          - "3.11"
+
+    steps:
+
+      # =======================================================================
+      # CHECKOUT
+      # =======================================================================
+
+      - name: Checkout repository
+
+        uses: actions/checkout@v4
+
+      # =======================================================================
+      # PYTHON SETUP
+      # =======================================================================
+
+      - name: Set up Python
+
+        uses: actions/setup-python@v5
+
+        with:
+
+          python-version:
+            ${{ matrix.python-version }}
+
+      # =======================================================================
+      # CACHE PIP
+      # =======================================================================
+
+      - name: Cache pip dependencies
+
+        uses: actions/cache@v4
+
+        with:
+
+          path: ~/.cache/pip
+
+          key:
+            ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # =======================================================================
+      # INSTALL DEPENDENCIES
+      # =======================================================================
+
+      - name: Install dependencies
+
+        run: |
+
+          python -m pip install --upgrade pip
+
+          pip install -r requirements.txt
+
+      # =======================================================================
+      # IMPORT VALIDATION
+      # =======================================================================
+
+      - name: Run import validation
+
+        run: |
+
+          python -m compileall app
+
+      # =======================================================================
+      # OPTIONAL TESTS
+      # =======================================================================
+
+      # Uncomment later when pytest suite exists
+
+      # - name: Run tests
+      #
+      #   run: |
+      #
+      #     pytest

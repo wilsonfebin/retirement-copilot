@@ -4,54 +4,72 @@
 
 import time
 import streamlit as st
+import sys
+from pathlib import Path
 
-from app.ui.charts import (
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.append(str(ROOT_DIR))
+
+from observability.phoenix_config import (
+    initialize_phoenix
+)
+
+initialize_phoenix()
+
+from ui.charts import (
     render_corpus_growth_chart
 )
 
-from app.ui.styles import load_css
+from ui.styles import load_css
 
-from app.guardrails.intent_guard import (
+from guardrails.intent_guard import (
     classify_query_intent
 )
 
-from app.agents.query_parser import (
+from agents.query_parser import (
     extract_financial_targets
 )
 
-from app.ui.sidebar import (
+from ui.sidebar import (
     render_knowledge_modules,
+    render_ai_evaluation_toggle,
     render_chat_history,
     render_chat_controls
 )
 
-from app.ui.chat import (
+from ui.chat import (
     render_user_message,
     render_assistant_message
 )
 
-from app.ui.cards import (
+from ui.cards import (
     render_projection_cards,
     render_recommended_plans,
     render_sources
 )
 
-from app.ui.metrics import (
+from ui.metrics import (
     render_footer_metrics
 )
 
-from app.api.simulation_client import (
+from api.simulation_client import (
     get_retirement_simulation
 )
 
-from app.api.analysis_client import (
-    stream_retirement_analysis
+from api.analysis_client import (
+    stream_retirement_analysis_local
 )
 
-from app.utils.helpers import (
+from utils.helpers import (
     format_retirement_response
 )
 
+from app.evaluation.ragas_evaluator import (
+
+    evaluate_response
+
+)
 
 # =============================================================================
 # PAGE CONFIG
@@ -230,11 +248,8 @@ st.divider()
 # =============================================================================
 
 render_knowledge_modules()
-
 render_chat_history()
-
-render_chat_controls()
-
+enable_ragas = render_ai_evaluation_toggle()
 
 # =============================================================================
 # SUGGESTED QUESTIONS
@@ -415,6 +430,7 @@ Conversation Context:
     recommended_plans = []
 
     formatted_documents = []
+    retrieved_context_text = ""
 
     backend_time = 0
 
@@ -434,7 +450,7 @@ Conversation Context:
         "🤖 Generating retirement insights..."
     )
 
-    for event in stream_retirement_analysis(
+    for event in stream_retirement_analysis_local(
 
         query=query,
 
@@ -517,6 +533,64 @@ Conversation Context:
     status_placeholder.success(
         "✅ Analysis complete"
     )
+    retrieved_context = "\n".join(
+
+        [
+
+            doc.get(
+
+                "content",
+
+                ""
+
+            )
+
+            for doc in formatted_documents
+
+        ]
+
+    )
+
+    ragas_metrics = None
+    
+    retrieved_context_text = "\n\n".join(
+
+                [
+
+                    doc.get(
+
+                        "content",
+
+                        ""
+
+                    )
+
+                    for doc in formatted_documents
+
+                ]
+
+    )
+
+        # ==========================================================
+
+        # RUN RAGAS
+
+        # ==========================================================
+    if enable_ragas:
+
+        ragas_metrics = (
+
+            evaluate_response(
+
+                query=user_query,
+
+                retrieved_context=(retrieved_context_text),
+
+                generated_response=(streamed_text)
+
+            )
+
+        )
 
     simulation_result = (
         simulation_preview
@@ -561,7 +635,9 @@ Conversation Context:
                 total_tokens,
 
             estimated_cost=
-                estimated_cost
+                estimated_cost,
+            ragas_metrics=
+                ragas_metrics
         )
     )
 

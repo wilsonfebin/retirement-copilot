@@ -5,19 +5,53 @@ def render_knowledge_modules():
 
     st.sidebar.divider()
 
-    st.sidebar.subheader("📚 Knowledge Modules")
+    st.sidebar.subheader(
+
+        "📚 Knowledge Modules"
+
+    )
 
     modules = [
+
         "Smart Pension Plan",
+
         "Systematic Retirement Plan",
+
         "Personal Pension Plus",
+
         "Retirement Savings Fund"
+
     ]
 
     for module in modules:
 
-        st.sidebar.caption(f"• {module}")
+        st.sidebar.caption(
 
+            f"• {module}"
+
+        )
+
+def render_ai_evaluation_toggle():
+
+    st.sidebar.divider()
+
+    st.sidebar.subheader(
+
+        "🧪 AI Evaluation"
+
+    )
+
+    enable_ragas = st.sidebar.toggle(
+
+        "Enable RAGAS Evaluation",
+
+        value=False,
+
+        key="ragas_eval_toggle"
+
+    )
+
+    return enable_ragas
 
 def render_chat_history():
 
@@ -57,7 +91,7 @@ def render_chat_history():
             if st.button(
                 title,
                 key=f"conversation_{idx}",
-                use_container_width=True,
+                width="stretch",
                 type=button_type
             ):
 
@@ -94,30 +128,52 @@ def render_chat_history():
 def render_chat_controls():
 
     st.sidebar.divider()
+    st.sidebar.subheader(
+
+        "⚙️ Controls"
+
+    )
 
     if st.sidebar.button(
+
         "➕ New Chat",
-        use_container_width=True
+
+        width="stretch"
+
     ):
 
         new_chat = {
+
             "title": "New Chat",
+
             "messages": []
+
         }
 
         st.session_state.conversations.append(
+
             new_chat
+
         )
 
         st.session_state.active_conversation = (
-            len(st.session_state.conversations) - 1
+
+            len(
+
+                st.session_state.conversations
+
+            ) - 1
+
         )
 
         st.rerun()
 
     if st.sidebar.button(
+
         "🧹 Clear Conversations",
-        use_container_width=True
+
+        width="stretch"
+
     ):
 
         st.session_state.conversations = []

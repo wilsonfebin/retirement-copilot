@@ -14,7 +14,8 @@ def format_retirement_response(
 
     total_tokens,
 
-    estimated_cost
+    estimated_cost, 
+    ragas_metrics=None
 ):
 
     return {
@@ -63,5 +64,7 @@ def format_retirement_response(
             total_tokens,
 
         "estimated_cost":
-            estimated_cost
+            estimated_cost,
+        "ragas_metrics": 
+            ragas_metrics
     }

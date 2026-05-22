@@ -1,0 +1,11 @@
+-r common.txt
+
+fastapi
+uvicorn
+chromadb
+langchain
+langchain-community
+langchain-openai
+langchain-chroma
+tiktoken
+sentence-transformers

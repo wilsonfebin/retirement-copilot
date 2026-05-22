@@ -1,19 +1,13 @@
-# =============================================================================
-# app/api/analysis_client.py
-# =============================================================================
+from backend.models.analysis_models import (
+    AnalysisRequest
+)
 
-import requests
-import json
-
-
-BASE_URL = "http://127.0.0.1:8000"
+from backend.services.analysis_service import (
+    stream_retirement_analysis
+)
 
 
-# =============================================================================
-# STREAM RETIREMENT ANALYSIS
-# =============================================================================
-
-def stream_retirement_analysis(
+def stream_retirement_analysis_local(
 
     query,
 
@@ -30,45 +24,25 @@ def stream_retirement_analysis(
     annual_return
 ):
 
-    payload = {
+    request = AnalysisRequest(
 
-        "query":
-            query,
+        query=query,
 
-        "current_age":
-            current_age,
+        current_age=current_age,
 
-        "retirement_age":
-            retirement_age,
+        retirement_age=retirement_age,
 
-        "current_corpus":
-            current_corpus,
+        current_corpus=current_corpus,
 
-        "monthly_investment":
-            monthly_investment,
+        monthly_investment=monthly_investment,
 
-        "risk_profile":
-            risk_profile,
+        risk_profile=risk_profile,
 
-        "annual_return":
-            annual_return
-    }
-
-    response = requests.post(
-
-        f"{BASE_URL}/analyze-stream",
-
-        json=payload,
-
-        stream=True
+        annual_return=annual_return
     )
 
-    response.raise_for_status()
+    for event in stream_retirement_analysis(
+        request
+    ):
 
-    for line in response.iter_lines():
-
-        if line:
-
-            yield json.loads(
-                line.decode("utf-8")
-            )
+        yield event

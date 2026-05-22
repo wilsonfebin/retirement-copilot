@@ -2,20 +2,21 @@
 # app/api/simulation_client.py
 # =============================================================================
 
-import requests
+from agents.simulation_agent import (
+    run_retirement_simulation
+)
 
-
-# =============================================================================
-# API CONFIG
-# =============================================================================
-
-API_BASE_URL = (
-    "http://127.0.0.1:8000"
+from backend.models.simulation_models import (
+    SimulationRequest
 )
 
 
 # =============================================================================
-# RETIREMENT SIMULATION API
+# GET RETIREMENT SIMULATION
+# =============================================================================
+
+# =============================================================================
+# GET RETIREMENT SIMULATION
 # =============================================================================
 
 def get_retirement_simulation(
@@ -31,33 +32,17 @@ def get_retirement_simulation(
     annual_return
 ):
 
-    payload = {
+    simulation_result = run_retirement_simulation(
 
-        "current_age":
-            current_age,
+        current_age=current_age,
 
-        "retirement_age":
-            retirement_age,
+        retirement_age=retirement_age,
 
-        "current_corpus":
-            current_corpus,
+        current_corpus=current_corpus,
 
-        "monthly_investment":
-            monthly_investment,
+        monthly_investment=monthly_investment,
 
-        "annual_return":
-            annual_return
-    }
-
-    response = requests.post(
-
-        f"{API_BASE_URL}/simulate",
-
-        json=payload,
-
-        timeout=30
+        annual_return=annual_return
     )
 
-    response.raise_for_status()
-
-    return response.json()
+    return simulation_result

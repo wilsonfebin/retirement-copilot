@@ -351,7 +351,7 @@ Retirement Gap<br>
 
         fig,
 
-        use_container_width=True
+        width="stretch"
     )
 
     # =========================================================================
