@@ -1,46 +1,53 @@
+import os
+
 from phoenix.otel import register
 
 from opentelemetry import trace
 
 
-# =============================================================================
-# REGISTER PHOENIX
-# =============================================================================
-
-tracer_provider = register(
-
-    project_name="retirement-copilot",
-
-    endpoint="http://localhost:4317"
-)
+ENABLE_PHOENIX = os.getenv(
+    "ENABLE_PHOENIX",
+    "false"
+).lower() == "true"
 
 
-# =============================================================================
-# OPENINFERENCE TRACER
-# =============================================================================
+if ENABLE_PHOENIX:
 
-tracer = tracer_provider.get_tracer(
-    __name__
-)
+    tracer_provider = register(
 
+        project_name="retirement-copilot",
 
-# =============================================================================
-# OPENTELEMETRY TRACER
-# =============================================================================
+        endpoint="http://localhost:4317",
+
+        verbose=False
+    )
+
+    tracer = tracer_provider.get_tracer(
+        __name__
+    )
+
+else:
+
+    tracer = trace.get_tracer(
+        __name__
+    )
+
 
 otel_tracer = trace.get_tracer(
     __name__
 )
 
 
-# =============================================================================
-# INITIALIZER
-# =============================================================================
-
 def initialize_phoenix():
 
-    print(
-        "Phoenix tracing initialized."
-    )
+    if ENABLE_PHOENIX:
 
-    return tracer
+        print(
+            "Phoenix tracing initialized."
+        )
+
+    else:
+
+        print(
+            "Phoenix disabled."
+        )
