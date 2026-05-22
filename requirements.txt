@@ -15,3 +15,6 @@ tiktoken
 protobuf==3.20.3
 ragas
 datasets
+arize-phoenix-otel
+openinference-instrumentation-openai
+openinference-instrumentation-langchain

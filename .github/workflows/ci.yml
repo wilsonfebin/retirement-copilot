@@ -1,71 +1,112 @@
-name: Retirement CoPilot CI
+# =============================================================================
+# .github/workflows/ci.yml
+# =============================================================================
+
+name: Retirement Copilot CI
 
 on:
 
   push:
+
     branches:
+
+      - main
+      - streamlit-deploy
+      - feature/phoenix-observability
+
+  pull_request:
+
+    branches:
+
       - main
       - streamlit-deploy
 
-  pull_request:
-    branches:
-      - main
-      - streamlit-deploy
 
 jobs:
 
-  validate:
+  test:
 
     runs-on: ubuntu-latest
-    env:
-      OPENAI_API_KEY: dummy-key
-      
+
+    strategy:
+
+      matrix:
+
+        python-version:
+
+          - "3.11"
+
     steps:
 
-      - name: Checkout Repository
+      # =======================================================================
+      # CHECKOUT
+      # =======================================================================
+
+      - name: Checkout repository
+
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      # =======================================================================
+      # PYTHON SETUP
+      # =======================================================================
+
+      - name: Set up Python
+
         uses: actions/setup-python@v5
+
         with:
-          python-version: "3.11"
 
-      # ============================================================
-      # FRONTEND DEPENDENCIES
-      # ============================================================
+          python-version:
+            ${{ matrix.python-version }}
 
-      - name: Install Frontend Dependencies
+      # =======================================================================
+      # CACHE PIP
+      # =======================================================================
+
+      - name: Cache pip dependencies
+
+        uses: actions/cache@v4
+
+        with:
+
+          path: ~/.cache/pip
+
+          key:
+            ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # =======================================================================
+      # INSTALL DEPENDENCIES
+      # =======================================================================
+
+      - name: Install dependencies
+
         run: |
-          pip install -r requirements/frontend.txt
 
-      # ============================================================
-      # BACKEND DEPENDENCIES
-      # ============================================================
+          python -m pip install --upgrade pip
 
-      - name: Install Backend Dependencies
+          pip install -r requirements.txt
+
+      # =======================================================================
+      # IMPORT VALIDATION
+      # =======================================================================
+
+      - name: Run import validation
+
         run: |
-          pip install -r requirements/backend.txt
 
-      # ============================================================
-      # PYTHON COMPILE CHECK
-      # ============================================================
+          python -m compileall app
 
-      - name: Validate Python Compilation
-        run: |
-          python -m compileall .
+      # =======================================================================
+      # OPTIONAL TESTS
+      # =======================================================================
 
-      # ============================================================
-      # FASTAPI IMPORT CHECK
-      # ============================================================
+      # Uncomment later when pytest suite exists
 
-      - name: Validate FastAPI App
-        run: |
-          python -c "from backend.main import app"
-
-      # ============================================================
-      # STREAMLIT IMPORT CHECK
-      # ============================================================
-
-      - name: Validate Streamlit Imports
-        run: |
-          python -c "import streamlit"
+      # - name: Run tests
+      #
+      #   run: |
+      #
+      #     pytest

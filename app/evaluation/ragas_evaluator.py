@@ -16,6 +16,14 @@ from langchain_openai import (
     OpenAIEmbeddings
 )
 
+from observability.phoenix_config import (
+    tracer
+)
+
+from opentelemetry.trace import (
+    get_current_span
+)
+
 
 # =============================================================================
 # EVALUATOR MODELS
@@ -37,6 +45,7 @@ evaluator_embeddings = (
 # RAGAS EVALUATION
 # =============================================================================
 
+@tracer.chain
 def evaluate_response(
 
     query,
@@ -47,12 +56,57 @@ def evaluate_response(
     try:
 
         # =============================================================
+        # ACTIVE SPAN
+        # =============================================================
+
+        span = get_current_span()
+
+        # =============================================================
+        # INPUT METRICS
+        # =============================================================
+
+        span.set_attribute(
+
+            "ragas.query",
+
+            query[:500]
+        )
+
+        span.set_attribute(
+
+            "ragas.query_length",
+
+            len(query)
+        )
+
+        span.set_attribute(
+
+            "ragas.response_length",
+
+            len(generated_response)
+        )
+
+        span.set_attribute(
+
+            "ragas.context_length",
+
+            len(retrieved_context)
+        )
+
+        # =============================================================
         # TRUNCATE CONTEXT
         # =============================================================
 
         truncated_context = (
 
             retrieved_context[:1500]
+        )
+
+        span.set_attribute(
+
+            "ragas.truncated_context_length",
+
+            len(truncated_context)
         )
 
         # =============================================================
@@ -166,6 +220,38 @@ def evaluate_response(
             hallucination_risk = "High"
 
         # =============================================================
+        # RAGAS TELEMETRY
+        # =============================================================
+
+        span.set_attribute(
+
+            "ragas.groundedness",
+
+            faithfulness_score
+        )
+
+        span.set_attribute(
+
+            "ragas.answer_relevance",
+
+            relevancy_score
+        )
+
+        span.set_attribute(
+
+            "ragas.hallucination_risk",
+
+            hallucination_risk
+        )
+
+        span.set_attribute(
+
+            "ragas.evaluation_success",
+
+            True
+        )
+
+        # =============================================================
         # RETURN
         # =============================================================
 
@@ -189,6 +275,26 @@ def evaluate_response(
 
         print(
             f"Ragas evaluation failed: {e}"
+        )
+
+        # =============================================================
+        # FAILURE TELEMETRY
+        # =============================================================
+
+        span = get_current_span()
+
+        span.set_attribute(
+
+            "ragas.evaluation_success",
+
+            False
+        )
+
+        span.set_attribute(
+
+            "ragas.error",
+
+            str(e)
         )
 
         return {
