@@ -23,9 +23,7 @@ within a modular enterprise-style AI architecture.
 
 # 🚀 Live Demo
 
-```text
-https://retirement-copilot.streamlit.app
-```
+https://retirement-copilot-phoenix.streamlit.app
 
 ---
 
