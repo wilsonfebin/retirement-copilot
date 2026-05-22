@@ -55,7 +55,7 @@ https://retirement-copilot-phoenix.streamlit.app
 
 ## RAGAS Evaluation Metrics
 
-![RAGAS Metrics](screenshots/ragas-metrics.png)
+![RAGAS Metrics](screenshots/Ragas-metrics.png)
 
 ---
 
