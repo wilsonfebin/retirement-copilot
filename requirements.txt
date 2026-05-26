@@ -19,4 +19,3 @@ arize-phoenix-otel
 openinference-instrumentation-openai
 openinference-instrumentation-langchain
 langchain-google-vertexai
-google-cloud-aiplatform
