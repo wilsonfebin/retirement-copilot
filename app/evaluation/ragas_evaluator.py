@@ -2,14 +2,9 @@
 # app/evaluation/ragas_evaluator.py
 # =============================================================================
 
+import os
+
 from datasets import Dataset
-
-from ragas import evaluate
-
-from ragas.metrics import (
-    faithfulness,
-    answer_relevancy
-)
 
 from langchain_openai import (
     ChatOpenAI,
@@ -22,6 +17,19 @@ from observability.phoenix_config import (
 
 from opentelemetry.trace import (
     get_current_span
+)
+
+
+# =============================================================================
+# ENABLE / DISABLE RAGAS
+# =============================================================================
+
+ENABLE_RAGAS = (
+
+    os.getenv(
+        "ENABLE_RAGAS",
+        "false"
+    ).lower() == "true"
 )
 
 
@@ -53,7 +61,34 @@ def evaluate_response(
     generated_response
 ):
 
+    # =========================================================================
+    # RAGAS DISABLED
+    # =========================================================================
+
+    if not ENABLE_RAGAS:
+
+        return {
+
+            "groundedness": 0,
+
+            "answer_relevance": 0,
+
+            "hallucination_risk": "Disabled"
+        }
+
     try:
+
+        # =============================================================
+        # LAZY IMPORTS
+        # =============================================================
+
+        from ragas import evaluate
+
+        from ragas.metrics import (
+
+            faithfulness,
+            answer_relevancy
+        )
 
         # =============================================================
         # ACTIVE SPAN
@@ -154,28 +189,10 @@ def evaluate_response(
         )
 
         # =============================================================
-        # DEBUG LOGS
-        # =============================================================
-
-        print(
-            "RAGAS RESULT:"
-        )
-
-        print(result)
-
-        print(
-            type(result)
-        )
-
-        # =============================================================
         # CONVERT TO PANDAS
         # =============================================================
 
         scores = result.to_pandas()
-
-        print(
-            scores
-        )
 
         # =============================================================
         # EXTRACT SCORES

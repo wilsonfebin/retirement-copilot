@@ -18,5 +18,3 @@ datasets==4.0.0
 arize-phoenix-otel
 openinference-instrumentation-openai
 openinference-instrumentation-langchain
-langchain-google-vertexai
-google-cloud-aiplatform
